@@ -26,6 +26,7 @@ img{max-width:100%}
 <meta name="apple-mobile-web-app-title" content="Forja">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<script src="vendor/supabase.js"></script>
 <style>
 /* Layout: app de una columna (máx. 560px), cabecera fija arriba y barra de pestañas abajo, como una app nativa de iPhone. */
 :root{
@@ -229,6 +230,30 @@ textarea{height:90px;padding:10px 12px;font-size:13px;font-family:ui-monospace,M
 .yt{text-decoration:none;color:var(--ink);padding:11px 14px;font-size:15px}
 .yt svg{width:22px;height:22px}
 .search{height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);padding:0 12px;width:100%;font-size:16px}
+/* Cuentas y amigos */
+.auth{max-width:420px;margin:0 auto;padding-block:28px 40px;display:flex;flex-direction:column;gap:16px}
+.auth .brand{font-size:34px}
+.auth .brand svg{width:44px;height:44px}
+.linkbtn{background:none;border:0;padding:6px 0;color:var(--accent);font-weight:600;font-size:15px;text-align:left}
+.err{color:var(--danger);font-weight:600;font-size:14px;margin:0}
+.err:empty{display:none}
+.ok-msg{color:var(--ok);font-weight:600;font-size:14px;margin:0}
+.code-input{font-size:28px!important;letter-spacing:.4em;text-align:center;font-weight:700}
+.check-row{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.35}
+.check-row input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--accent)}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:17px;border:0;flex:none;text-transform:uppercase}
+.avatar.lg{width:64px;height:64px;font-size:26px}
+.avatar.alt{background:var(--surface-2);color:var(--ink)}
+.top .right{display:flex;gap:8px;align-items:center}
+.tabs .in{grid-template-columns:repeat(5,1fr)!important}
+.tabs button{position:relative}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;line-height:1}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.bad{background:color-mix(in srgb,var(--danger) 15%,transparent);color:var(--danger)}
+.pill.okp{background:var(--ok-soft);color:var(--ok)}
+.notice{background:var(--accent-soft);border-radius:var(--r);padding:12px 14px;font-size:14px}
+.sm{padding:8px 12px!important;font-size:14px!important}
+.admin-row .meta{font-size:13px;color:var(--muted);word-break:break-word}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}.demo img+img{animation-duration:4s}}
 </style>
 
@@ -254,6 +279,10 @@ const I={
   stats:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V11M10 20V5M16 20v-7M22 20H2"/></svg>',
   tools:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg>',
   play:'<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="#E62117"/><path d="M10 9l5 3-5 3z" fill="#fff"/></svg>',
+  friends:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.3-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.5.2 4.3 1.9 5 4.9"/></svg>',
+  send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/></svg>',
   flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
 };
 const EQ_SVG={
@@ -470,7 +499,7 @@ const PROGRAMS=[
 ];
 
 /* ---------- Estado ---------- */
-const KEY='forja.v1';
+let KEY='forja.v1';
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&Array.isArray(s.history))return s}catch(e){}return null}
 const S=Object.assign({
   settings:{rest:90,theme:null},
@@ -532,15 +561,19 @@ function confirmBox(title,text,okLabel,onOk,danger=true){
 /* ---------- Render principal ---------- */
 function render(){
   const app=$('#app');
+  const gate=authGate();
+  document.querySelector('.tabs').hidden=gate!==null;
+  if(gate!==null){app.innerHTML=gate;return}
   const top=`<header class="top"><div class="brand">${I.logo}Forja</div>
-    <button class="iconbtn" data-a="theme" aria-label="Cambiar tema claro/oscuro">${isDark()?I.sun:I.moon}</button></header>`;
+    <div class="right"><button class="iconbtn" data-a="theme" aria-label="Cambiar tema claro/oscuro">${isDark()?I.sun:I.moon}</button>
+    <button class="avatar" data-a="tab" data-v="me" aria-label="Mi perfil">${esc(initials(A.profile))}</button></div></header>`;
   let body='';
   if(view==='session'&&S.active)body=vSession();
   else if(view==='summary')body=vSummary();
   else{
     if(view==='session')view='train';
     const live=S.active?`<div class="live"><div class="row"><span class="dot"></span><div><b>Entreno en curso</b><div style="font-size:13px;opacity:.75"><span data-elapsed></span> · ${esc(S.active.name)}</div></div></div><button data-a="resume">Continuar</button></div>`:'';
-    body=live+({train:vTrain,programs:vPrograms,stats:vStats,tools:vTools}[view])();
+    body=live+(({train:vTrain,programs:vPrograms,stats:vStats,tools:vTools,friends:vFriends,friend:vFriend,me:vMe,admin:vAdmin})[view]||vTrain)();
   }
   app.innerHTML=top+body+restBar();
   renderTabs();
@@ -548,9 +581,10 @@ function render(){
 }
 function isDark(){return S.settings.theme?S.settings.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches}
 function renderTabs(){
-  const cur=view==='session'||view==='summary'?'train':view;
-  $('#tabs').innerHTML=[['train','Entrenar',I.train],['programs','Programas',I.prog],['stats','Estadísticas',I.stats],['tools','Herramientas',I.tools]]
-   .map(([id,l,ic])=>`<button data-a="tab" data-v="${id}" ${cur===id?'aria-current="page"':''}>${ic}${l}</button>`).join('');
+  const cur=view==='session'||view==='summary'?'train':view==='friend'?'friends':view==='admin'?'me':view;
+  const nb=socialBadge();
+  $('#tabs').innerHTML=[['train','Entrenar',I.train],['programs','Programas',I.prog],['friends','Amigos',I.friends],['stats','Estadísticas',I.stats],['tools','Herramientas',I.tools]]
+   .map(([id,l,ic])=>`<button data-a="tab" data-v="${id}" ${cur===id?'aria-current="page"':''}>${ic}${l}${id==='friends'&&nb?`<span class="badge">${nb}</span>`:''}</button>`).join('');
 }
 
 /* ---------- Entrenar: asistente ---------- */
@@ -656,7 +690,7 @@ function finishSession(){
   S.active=null;keepAwake(false);
   if(!exercises.length){save();view='train';render();toast('No había series completadas; no se ha guardado nada.');return}
   const rec={id:s.id,name:s.name,date:s.start,duration:Math.round((Date.now()-s.start)/1000),exercises};
-  S.history.push(rec);save();summaryId=rec.id;view='summary';render();window.scrollTo(0,0);
+  S.history.push(rec);save();pushWorkout(rec);summaryId=rec.id;view='summary';render();window.scrollTo(0,0);
 }
 function recStats(r){let vol=0,sets=0,reps=0;r.exercises.forEach(e=>{const t=EXI[e.exId]?.kind==='time';e.sets.forEach(x=>{sets++;if(!t){reps+=x.reps;vol+=x.kg*x.reps}})});return{vol,sets,reps}}
 function vSummary(){
@@ -666,7 +700,7 @@ function vSummary(){
   <div class="kpis"><div class="kpi"><div class="v">${fmtTime(r.duration)}</div><div class="l">Duración</div></div><div class="kpi"><div class="v">${st.sets}</div><div class="l">Series completadas</div></div>
   <div class="kpi"><div class="v">${fmtNum(st.vol)}<small>kg</small></div><div class="l">Volumen levantado</div></div><div class="kpi"><div class="v">${st.reps}</div><div class="l">Repeticiones</div></div></div>
   <div class="list">${r.exercises.map(e=>`<div class="item"><div class="grow"><div class="name">${esc(EXI[e.exId]?.name||e.exId)}</div><div class="muted num" style="font-size:14px">${e.sets.map(x=>(x.kg?x.kg+' kg × ':'')+x.reps+(EXI[e.exId]?.kind==='time'?' s':'')).join(' · ')}</div></div></div>`).join('')}</div>
-  <button class="btn primary block" data-a="tab" data-v="stats">Ver estadísticas</button></div>`;
+  <div class="row"><button class="btn ghost" style="flex:1" data-a="share-rec" data-v="${r.id}">${I.send} Enviar a un amigo</button><button class="btn primary" style="flex:1" data-a="tab" data-v="stats">Ver estadísticas</button></div></div>`;
 }
 
 /* ---------- Estadísticas ---------- */
@@ -697,7 +731,7 @@ function vStats(){
   <section class="card chart"><h3>Entrenos por semana</h3><p class="muted" style="margin:2px 0 8px;font-size:13px">Últimas 8 semanas (lunes de cada semana)</p><svg viewBox="0 0 ${cw} ${ch}" role="img" aria-label="Entrenos por semana">${grid}${bars}</svg></section>
   <section class="card stack" style="gap:10px"><h3>Series por músculo</h3>${mlist.map(([m,n])=>`<div class="hbar"><span>${MNAME[m]}</span><span class="track"><i style="width:${n/mmax*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</section>
   ${prl.length?`<section class="card stack" style="gap:6px"><h3>Récords · 1RM estimado</h3><table class="ptable">${prl.map(([id,p])=>`<tr><td>${EXI[id].name}<div class="muted" style="font-size:12px">${p.kg} kg × ${p.reps} · ${fmtDate(p.date)}</div></td><td>${Math.round(p.est)} kg</td></tr>`).join('')}</table></section>`:''}
-  <section class="stack" style="gap:10px"><h3>Historial</h3><div class="list">${H.slice().reverse().map(r=>{const s=recStats(r);return `<div class="item"><div class="grow"><div class="name">${esc(r.name)}</div><div class="muted num" style="font-size:13px">${fmtDate(r.date)} · ${fmtTime(r.duration)} · ${s.sets} series · ${fmtNum(s.vol)} kg</div></div><button class="mini" data-a="del-rec" data-v="${r.id}" aria-label="Borrar entreno">${I.x}</button></div>`}).join('')}</div></section></div>`;
+  <section class="stack" style="gap:10px"><h3>Historial</h3><div class="list">${H.slice().reverse().map(r=>{const s=recStats(r);return `<div class="item"><div class="grow"><div class="name">${esc(r.name)}</div><div class="muted num" style="font-size:13px">${fmtDate(r.date)} · ${fmtTime(r.duration)} · ${s.sets} series · ${fmtNum(s.vol)} kg</div></div><button class="mini" data-a="share-rec" data-v="${r.id}" aria-label="Enviar a un amigo">${I.send}</button><button class="mini" data-a="del-rec" data-v="${r.id}" aria-label="Borrar entreno">${I.x}</button></div>`}).join('')}</div></section></div>`;
 }
 
 /* ---------- Herramientas ---------- */
@@ -729,11 +763,12 @@ function vTools(){
     c=`<div class="card stack"><h3>Ajustes</h3>
     <div class="field"><label for="setRest">Descanso por defecto entre series</label><select id="setRest" data-a="rest-sel">${[30,45,60,90,120,150,180,240].map(v=>`<option value="${v}" ${v==S.settings.rest?'selected':''}>${fmtTime(v)}</option>`).join('')}</select></div>
     <div class="field"><label>Tema</label><div class="seg">${[['','Sistema'],['light','Claro'],['dark','Oscuro']].map(([v,l])=>`<button data-a="set-theme" data-v="${v}" aria-pressed="${(S.settings.theme||'')===v}">${l}</button>`).join('')}</div></div></div>
-    <div class="card stack"><h3>Copia de seguridad</h3><p class="muted" style="margin:0;font-size:14px">Tus entrenos se guardan solo en este dispositivo. Copia el texto y guárdalo en Notas para no perderlos; pégalo aquí para restaurarlos.</p>
+    <div class="card stack"><h3>Copia de seguridad</h3><p class="muted" style="margin:0;font-size:14px">Tus entrenos ya se guardan en tu cuenta. Si quieres una copia extra, cópiala y guárdala en Notas; pégala aquí para restaurarla.</p>
     <button class="btn ghost" data-a="backup-copy">Copiar copia de seguridad</button>
     <textarea id="importTxt" aria-label="Texto de copia de seguridad" placeholder="Pega aquí tu copia de seguridad"></textarea>
     <button class="btn ghost" data-a="backup-import">Restaurar desde el texto</button>
     <button class="btn danger" data-a="wipe">Borrar todo el historial</button></div>
+    <p class="muted" style="margin:0;font-size:12px">Tus entrenos se guardan en tu cuenta de Forja y también en este dispositivo para poder entrenar sin conexión.</p>
     <p class="muted" style="margin:0;font-size:12px">Fotos de ejercicios: free-exercise-db (github.com/yuhonas/free-exercise-db), dominio público. Los vídeos se buscan en YouTube.</p>`;
   }
   return `<div class="stack"><h1>Herramientas</h1><div class="seg" role="tablist">${tabs.map(([id,l])=>`<button role="tab" data-a="tool" data-v="${id}" aria-pressed="${toolTab===id}">${l}</button>`).join('')}</div>${c}</div>`;
@@ -833,7 +868,7 @@ document.addEventListener('click',e=>{
     case 'leave':view='train';break;
     case 'finish':{const n=s.exercises.reduce((a,e)=>a+e.sets.filter(x=>x.done).length,0);
       confirmBox('¿Terminar entreno?',n?`Se guardarán ${n} series completadas.`:'No has completado ninguna serie; el entreno se descartará.',n?'Terminar y guardar':'Descartar',finishSession,!n)}return;
-    case 'del-rec':confirmBox('¿Borrar este entreno?','Se eliminará del historial y de las estadísticas.','Borrar',()=>{S.history=S.history.filter(r=>r.id!==v);save();render()});return;
+    case 'del-rec':confirmBox('¿Borrar este entreno?','Se eliminará del historial y de las estadísticas.','Borrar',()=>{S.history=S.history.filter(r=>r.id!==v);deleteWorkout(v);save();render()});return;
     case 'tool':toolTab=v;break;
     case 'int-toggle':{unlockAudio();const it=T.itimer;
       if(!it){T.itimer={phase:'work',round:1,end:Date.now()+num(T.iw)*1000,paused:false};keepAwake(true)}
@@ -843,9 +878,9 @@ document.addEventListener('click',e=>{
       navigator.clipboard.writeText(txt).then(()=>toast('Copia copiada. Pégala en Notas.'),()=>{const ta=$('#importTxt');ta.value=txt;ta.select();toast('Selecciona y copia el texto del cuadro')})}return;
     case 'backup-import':{try{const d=JSON.parse($('#importTxt').value);if(!Array.isArray(d.history))throw 0;
       const clean=d.history.filter(r=>r&&r.id&&r.date&&Array.isArray(r.exercises)).map(r=>({id:String(r.id),name:String(r.name||'Entreno'),date:+r.date,duration:+r.duration||0,exercises:r.exercises.filter(e=>EXI[e.exId]).map(e=>({exId:e.exId,sets:(e.sets||[]).map(x=>({kg:num(x.kg),reps:num(x.reps)}))}))}));
-      confirmBox('¿Restaurar copia?',`Se cargarán ${clean.length} entrenos y se reemplazará el historial actual.`,'Restaurar',()=>{S.history=clean.sort((a,b)=>a.date-b.date);save();render();toast('Copia restaurada')},false)}
+      confirmBox('¿Restaurar copia?',`Se cargarán ${clean.length} entrenos y se añadirán a tu cuenta.`,'Restaurar',()=>{const have=new Set(S.history.map(r=>r.id));clean.forEach(r=>{if(!have.has(r.id))S.history.push(r)});S.history.sort((a,b)=>a.date-b.date);save();syncAll();render();toast('Copia restaurada')},false)}
       catch(err){toast('El texto no es una copia de seguridad válida de Forja')}}return;
-    case 'wipe':confirmBox('¿Borrar todo el historial?','Se eliminarán todos tus entrenos guardados. No se puede deshacer.','Borrar todo',()=>{S.history=[];save();render();toast('Historial borrado')});return;
+    case 'wipe':confirmBox('¿Borrar todo el historial?','Se eliminarán todos tus entrenos guardados. No se puede deshacer.','Borrar todo',()=>{S.history.forEach(r=>deleteWorkout(r.id));S.history=[];save();render();toast('Historial borrado')});return;
     default:return;
   }
   save();render();
@@ -866,7 +901,333 @@ document.addEventListener('change',e=>{const t=e.target;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&(S.active||T.itimer)){wake=null;keepAwake(true)}});
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!S.settings.theme)render()});
 
-render();
+/* ---------- Cuentas, amigos y administración (Supabase) ---------- */
+// Datos públicos del proyecto de Supabase (Project URL y Publishable/anon key).
+const FORJA_CONFIG={url:'https://qxapuoemkpwizleenbar.supabase.co',key:'sb_publishable_Ub9czsb2WtuZoyshIi5_jg_Xec33JOo'};
+const APP_URL='https://marthe79.github.io/forja/';
+const sb=(window.supabase&&FORJA_CONFIG.url&&FORJA_CONFIG.key)?window.supabase.createClient(FORJA_CONFIG.url,FORJA_CONFIG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'forja.auth'}}):null;
+const A={status:'loading',user:null,profile:null,mode:'login',email:'',offline:false,needPass:false,resendAt:0};
+const F={friends:[],inbox:[],results:null,q:'',friend:null};
+const ADM={stats:null,users:null,q:''};
+const SEX={hombre:'Hombre',mujer:'Mujer',otro:'Otro',prefiero_no_decir:'Prefiero no decirlo'};
+const onboarded=p=>!!(p&&p.full_name&&p.nickname&&p.age&&p.sex&&p.city);
+const isAdmin=()=>A.profile?.role==='admin'&&!A.profile?.blocked;
+const canSync=()=>!!(sb&&A.user&&onboarded(A.profile)&&!A.profile.blocked);
+function initials(p){const n=(p?.full_name||p?.nickname||'?').trim().split(/\s+/);return ((n[0]||'?')[0]+(n[1]?n[1][0]:'')).slice(0,2)}
+function errMsg(e){const m=String(e?.message||e||'');
+  if(/Invalid login credentials/i.test(m))return 'Correo o contraseña incorrectos. Si no recuerdas la contraseña, usa “Crear cuenta o he olvidado mi contraseña”.';
+  if(/Email not confirmed/i.test(m))return 'Tu correo aún no está confirmado. Pide un código con “Crear cuenta o he olvidado mi contraseña”.';
+  if(/(Token has expired|invalid|otp)/i.test(m)&&/token|otp|code/i.test(m))return 'El código no es correcto o ha caducado. Revisa el último correo o pide uno nuevo.';
+  if(/rate limit|too many|seconds/i.test(m))return 'Has pedido demasiados códigos seguidos. Espera un minuto y vuelve a intentarlo.';
+  if(/should be different/i.test(m))return 'La contraseña nueva debe ser distinta de la anterior.';
+  if(/Password should be at least/i.test(m))return 'La contraseña es demasiado corta.';
+  if(/duplicate key|profiles_nickname_key|23505/i.test(m))return 'Ese nick ya lo usa otra persona. Elige otro.';
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m))return 'No hay conexión con el servidor. Comprueba tu internet y vuelve a intentarlo.';
+  return m||'Ha ocurrido un error. Vuelve a intentarlo.'}
+function softRender(){const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.closest('#app'))return;render()}
+function setErr(form,msg,ok){const el=form.querySelector('.err');if(el){el.textContent=msg||'';el.className=ok?'ok-msg':'err'}}
+function busy(form,on){form.querySelectorAll('button').forEach(b=>b.disabled=on)}
+
+/* Historial separado por usuario en este dispositivo */
+function useUser(uid){
+  const k=uid?'forja.u.'+uid:'forja.v1';if(KEY===k)return;
+  KEY=k;let st=load();
+  if(uid&&!st){try{const legacy=JSON.parse(localStorage.getItem('forja.v1')||'null');if(legacy&&Array.isArray(legacy.history)&&legacy.history.length){st=legacy;localStorage.removeItem('forja.v1')}}catch(e){}}
+  for(const x of Object.keys(S))delete S[x];
+  Object.assign(S,{settings:{rest:90,theme:null},history:[],deleted:[],active:null,wiz:{step:1,equip:['bw','dumbbell'],muscles:[],list:[],sig:''}},st||{});
+  if(!Array.isArray(S.deleted))S.deleted=[];
+  applyTheme();view=S.active?'session':'train';
+}
+
+/* Sesión */
+async function authInit(){
+  if(!sb){A.status='ready';render();return}
+  render();
+  let session=null;try{session=(await sb.auth.getSession()).data.session}catch(e){}
+  await onSession(session);
+  sb.auth.onAuthStateChange((ev,ses)=>{setTimeout(()=>{
+    if(ev==='SIGNED_OUT'){onSession(null)}
+    else if(ses&&ses.user&&ses.user.id!==A.user?.id){onSession(ses)}
+  },0)});
+  addEventListener('online',()=>{A.offline=false;if(A.user&&!A.profile)loadProfile().then(render);syncAll();refreshSocial()});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&canSync()){syncAll();refreshSocial()}});
+}
+async function onSession(session){
+  if(!session){A.user=null;A.profile=null;A.status='ready';A.needPass=false;useUser(null);F.friends=[];F.inbox=[];render();return}
+  A.user=session.user;useUser(A.user.id);
+  try{A.needPass=localStorage.getItem('forja.needpass')===A.user.id}catch(e){}
+  A.profile=S.profile||null;A.status='ready';render();
+  await loadProfile();render();
+  if(canSync()){syncAll();refreshSocial()}
+}
+async function loadProfile(){
+  try{const {data,error}=await sb.from('profiles').select('*').eq('id',A.user.id).maybeSingle();
+    if(error)throw error;
+    A.offline=false;
+    if(data){A.profile=data;S.profile=data;save();sb.from('profiles').update({last_seen:new Date().toISOString()}).eq('id',A.user.id).then(()=>{},()=>{})}
+  }catch(e){A.offline=true}
+}
+async function logout(){try{await sb.auth.signOut()}catch(e){}try{localStorage.removeItem('forja.needpass')}catch(e){}onSession(null)}
+
+/* Puerta de entrada: devuelve la pantalla que toca o null si puede usar la app */
+function authGate(){
+  if(!sb)return vNoServer();
+  if(A.status==='loading')return `<div class="auth"><div class="brand">${I.logo}Forja</div><p class="muted">Cargando…</p></div>`;
+  if(!A.user)return vAuth();
+  if(A.needPass)return vSetPassword();
+  if(!A.profile)return A.offline?vOffline():`<div class="auth"><div class="brand">${I.logo}Forja</div><p class="muted">Cargando tu perfil…</p></div>`;
+  if(A.profile.blocked)return vBlocked();
+  if(!onboarded(A.profile))return `<div class="auth">${vProfileForm(false)}</div>`;
+  return null;
+}
+const authHead=(t,p)=>`<div class="brand">${I.logo}Forja</div><div><h1>${t}</h1>${p?`<p class="muted" style="margin:8px 0 0">${p}</p>`:''}</div>`;
+function vNoServer(){return `<div class="auth">${authHead('Falta conectar el servidor','La app necesita los datos del proyecto de Supabase para poder iniciar sesión.')}</div>`}
+function vOffline(){return `<div class="auth">${authHead('Sin conexión','Para entrar la primera vez en este dispositivo necesitas internet. Conéctate y vuelve a intentarlo.')}<button class="btn primary block" data-a="auth-retry">Reintentar</button><button class="linkbtn" data-a="logout">Cerrar sesión</button></div>`}
+function vBlocked(){return `<div class="auth">${authHead('Cuenta bloqueada','El administrador ha desactivado esta cuenta. Si crees que es un error, ponte en contacto con quien te invitó a Forja.')}<button class="btn ghost block" data-a="logout">Cerrar sesión</button></div>`}
+function vAuth(){
+  if(A.mode==='code-email')return `<div class="auth">${authHead('Crear cuenta o recuperar contraseña','Escribe tu correo y te enviaremos un código de 6 dígitos. Con él eliges tu contraseña. Sirve tanto si es tu primera vez como si la has olvidado.')}
+    <form data-form="send-code" class="stack" novalidate>
+      <div class="field"><label for="ceEmail">Correo electrónico</label><input id="ceEmail" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" required value="${esc(A.email)}"></div>
+      <p class="err"></p><button class="btn primary block">Enviarme el código</button></form>
+    <button class="linkbtn" data-a="auth-mode" data-v="login">${I.left.replace('<svg','<svg style="width:15px;height:15px;vertical-align:-2px"')} Volver a entrar con contraseña</button></div>`;
+  if(A.mode==='code-verify')return `<div class="auth">${authHead('Revisa tu correo',`Hemos enviado un código a <b>${esc(A.email)}</b>. Puede tardar un minuto; mira también en la carpeta de spam.`)}
+    <form data-form="verify-code" class="stack" novalidate>
+      <div class="field"><label for="cvCode">Código</label><input id="cvCode" name="code" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" required></div>
+      <p class="err"></p><button class="btn primary block">Continuar</button></form>
+    <div class="row between wrap"><button class="linkbtn" data-a="resend-code">Enviar otro código</button><button class="linkbtn" data-a="auth-mode" data-v="code-email">Cambiar de correo</button></div></div>`;
+  return `<div class="auth">${authHead('Entra en Forja','Tus entrenos, tus amigos y tu progreso, en cualquier dispositivo.')}
+    <form data-form="login" class="stack" novalidate>
+      <div class="field"><label for="lgEmail">Correo electrónico</label><input id="lgEmail" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" required value="${esc(A.email)}"></div>
+      <div class="field"><label for="lgPass">Contraseña</label><input id="lgPass" name="password" type="password" autocomplete="current-password" required></div>
+      <p class="err"></p><button class="btn primary block">Entrar</button></form>
+    <div class="card stack" style="gap:6px"><b>¿Es tu primera vez o no recuerdas la contraseña?</b>
+      <button class="btn ghost block" data-a="auth-mode" data-v="code-email">Crear cuenta o he olvidado mi contraseña</button></div></div>`;
+}
+function vSetPassword(){return `<div class="auth">${authHead('Elige tu contraseña','Usa al menos 8 caracteres. La necesitarás para entrar la próxima vez.')}
+  <form data-form="set-password" class="stack" novalidate>
+    <input type="email" name="username" autocomplete="username" value="${esc(A.user?.email||'')}" hidden>
+    <div class="field"><label for="spPass">Contraseña nueva</label><input id="spPass" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
+    <div class="field"><label for="spPass2">Repite la contraseña</label><input id="spPass2" name="password2" type="password" autocomplete="new-password" minlength="8" required></div>
+    <p class="err"></p><button class="btn primary block">Guardar contraseña</button></form>${onboarded(A.profile)?'<button class="btn ghost block" data-a="pass-cancel">Cancelar</button>':'<button class="linkbtn" data-a="logout">Cerrar sesión</button>'}</div>`}
+function vProfileForm(edit){const p=A.profile||{};
+  return `${edit?'':authHead('Cuéntanos sobre ti','Solo te lo preguntamos esta vez. Podrás cambiarlo cuando quieras desde tu perfil.')}
+  <form data-form="profile" data-edit="${edit?1:''}" class="stack" novalidate>
+    <div class="field"><label for="pfName">Nombre y apellidos</label><input id="pfName" name="full_name" autocomplete="name" required value="${esc(p.full_name||'')}"></div>
+    <div class="field"><label for="pfNick">Nick (así te verán tus amigos)</label><input id="pfNick" name="nickname" autocapitalize="none" autocomplete="off" maxlength="20" required value="${esc(p.nickname||'')}" placeholder="por ejemplo, marco_fit"></div>
+    <div class="row" style="align-items:flex-start"><div class="field"><label for="pfAge">Edad</label><input id="pfAge" name="age" inputmode="numeric" maxlength="3" required value="${esc(p.age||'')}"></div>
+      <div class="field"><label for="pfSex">Sexo</label><select id="pfSex" name="sex" required><option value="">Elige…</option>${Object.entries(SEX).map(([k,l])=>`<option value="${k}" ${p.sex===k?'selected':''}>${l}</option>`).join('')}</select></div></div>
+    <div class="field"><label for="pfCity">Ciudad donde entrenas</label><input id="pfCity" name="city" autocomplete="address-level2" required value="${esc(p.city||'')}"></div>
+    <label class="check-row"><input type="checkbox" name="discoverable" id="pfDisc" ${p.discoverable?'checked':''}><span>Quiero que otros usuarios de Forja me encuentren por mi nick y mi ciudad.<br><small class="muted">Tu nombre, edad, sexo y correo nunca se muestran a otros usuarios.</small></span></label>
+    <p class="err"></p><button class="btn primary block">${edit?'Guardar cambios':'Empezar a entrenar'}</button></form>${edit?'':'<button class="linkbtn" data-a="logout">Cerrar sesión</button>'}`}
+
+/* Sincronización del historial con la cuenta */
+const toRow=r=>({id:r.id,user_id:A.user.id,name:r.name,date:new Date(r.date).toISOString(),duration:r.duration||0,exercises:r.exercises});
+const fromRow=w=>({id:w.id,name:w.name,date:Date.parse(w.date),duration:w.duration,exercises:w.exercises,synced:true});
+let syncing=false;
+async function syncAll(){
+  if(!canSync()||syncing)return;syncing=true;
+  try{
+    if(S.deleted.length){const ids=S.deleted.slice();const {error}=await sb.from('workouts').delete().in('id',ids);if(!error){S.deleted=S.deleted.filter(x=>!ids.includes(x))}}
+    const {data,error}=await sb.from('workouts').select('id,name,date,duration,exercises').eq('user_id',A.user.id).order('date');
+    if(error)throw error;
+    const server=new Map(data.map(w=>[w.id,w]));
+    const up=S.history.filter(r=>!server.has(r.id)&&!r.synced);
+    const gone=new Set(S.deleted);
+    const merged=[...data.filter(w=>!gone.has(w.id)).map(fromRow),...up];
+    if(up.length){const {error:e2}=await sb.from('workouts').upsert(up.map(toRow));if(!e2)up.forEach(r=>r.synced=true)}
+    merged.sort((a,b)=>a.date-b.date);
+    const changed=JSON.stringify(merged.map(r=>r.id))!==JSON.stringify(S.history.map(r=>r.id));
+    S.history=merged;save();if(changed&&(view==='stats'||view==='train'))softRender();
+  }catch(e){}finally{syncing=false}
+}
+async function pushWorkout(r){if(!canSync())return;try{const {error}=await sb.from('workouts').upsert(toRow(r));if(!error){r.synced=true;save()}}catch(e){}}
+async function deleteWorkout(id){if(!sb||!A.user)return;S.deleted.push(id);save();if(!canSync())return;try{const {error}=await sb.from('workouts').delete().eq('id',id);if(!error){S.deleted=S.deleted.filter(x=>x!==id);save()}}catch(e){}}
+
+/* Amigos */
+const socialBadge=()=>F.friends.filter(f=>f.status==='pending'&&f.incoming).length+F.inbox.filter(x=>!x.seen).length;
+async function refreshSocial(){
+  if(!canSync())return;
+  try{const [fr,ib]=await Promise.all([sb.rpc('my_friends'),sb.rpc('my_inbox')]);
+    if(!fr.error)F.friends=fr.data||[];if(!ib.error)F.inbox=ib.data||[];
+    renderTabs();if(view==='friends')softRender();
+  }catch(e){}
+}
+function friendRow(f,extra){return `<div class="item"><span class="avatar alt">${esc((f.nickname||'?').slice(0,2))}</span><div class="grow"><div class="name">${esc(f.nickname||'Sin nick')}</div><div class="muted" style="font-size:13px">${esc(f.city||'')}</div></div>${extra}</div>`}
+function vFriends(){
+  const acc=F.friends.filter(f=>f.status==='accepted'),inc=F.friends.filter(f=>f.status==='pending'&&f.incoming),out=F.friends.filter(f=>f.status==='pending'&&!f.incoming);
+  const rel=new Map(F.friends.map(f=>[f.id,f]));
+  const results=F.results===null?'':F.results.length?`<div class="list">${F.results.map(r=>{const f=rel.get(r.id);const act=!f?`<button class="btn primary sm" data-a="fr-add" data-v="${r.id}">Añadir</button>`:f.status==='accepted'?`<span class="pill okp">Amigos</span>`:f.incoming?`<button class="btn primary sm" data-a="fr-accept" data-v="${r.id}">Aceptar</button>`:`<span class="pill">Enviada</span>`;return friendRow(r,act)}).join('')}</div>`:`<p class="muted" style="margin:0">No hemos encontrado a nadie con “${esc(F.q)}”. Solo aparecen quienes han aceptado que les encuentren.</p>`;
+  return `<div class="stack"><div><h1>Amigos</h1><p class="muted" style="margin:6px 0 0">Busca a otros usuarios por su nick o su ciudad, mira su progreso y envíales entrenos.</p></div>
+  ${A.profile.discoverable?'':`<div class="notice">Ahora mismo nadie puede encontrarte en la búsqueda. <button class="linkbtn" style="padding:0" data-a="tab" data-v="me">Actívalo en tu perfil</button>.</div>`}
+  ${F.inbox.length?`<section class="stack" style="gap:8px"><h3>Entrenos recibidos</h3><div class="list">${F.inbox.map(x=>`<div class="item"><div class="grow"><div class="name">${esc(x.name)} ${x.seen?'':'<span class="pill">Nuevo</span>'}</div><div class="muted" style="font-size:13px">De ${esc(x.from_nick||'un amigo')} · ${(x.items||[]).length} ejercicios · ${fmtDate(x.created_at)}</div>${x.message?`<div style="font-size:14px;margin-top:4px">“${esc(x.message)}”</div>`:''}</div><button class="btn primary sm" data-a="inbox-start" data-v="${x.id}">Empezar</button><button class="mini" data-a="inbox-del" data-v="${x.id}" aria-label="Borrar">${I.x}</button></div>`).join('')}</div></section>`:''}
+  ${inc.length?`<section class="stack" style="gap:8px"><h3>Solicitudes de amistad</h3><div class="list">${inc.map(f=>friendRow(f,`<button class="btn primary sm" data-a="fr-accept" data-v="${f.id}">Aceptar</button><button class="mini" data-a="fr-del" data-v="${f.id}" aria-label="Rechazar">${I.x}</button>`)).join('')}</div></section>`:''}
+  <section class="stack" style="gap:8px"><h3>Buscar usuarios</h3>
+    <form data-form="search" class="row"><input class="search" name="q" id="frQ" placeholder="Nick o ciudad" autocomplete="off" autocapitalize="none" value="${esc(F.q)}"><button class="btn primary" aria-label="Buscar" style="padding:0 14px;height:44px">${I.search.replace('<svg','<svg style="width:20px;height:20px"')}</button></form>${results}</section>
+  <section class="stack" style="gap:8px"><h3>Mis amigos</h3>${acc.length?`<div class="list">${acc.map(f=>friendRow(f,`<button class="btn ghost sm" data-a="fr-open" data-v="${f.id}">Ver progreso</button>`)).join('')}</div>`:`<div class="empty"><p style="margin:0">Todavía no tienes amigos en Forja. Búscalos por su nick o invítalos a instalar la app.</p></div>`}</section>
+  ${out.length?`<section class="stack" style="gap:8px"><h3>Solicitudes enviadas</h3><div class="list">${out.map(f=>friendRow(f,`<button class="btn ghost sm" data-a="fr-del" data-v="${f.id}">Cancelar</button>`)).join('')}</div></section>`:''}
+  <button class="btn ghost block" data-a="invite">${I.send} Invitar a alguien a Forja</button></div>`;
+}
+function vFriend(){
+  const f=F.friend;if(!f){view='friends';return vFriends()}
+  const head=`<div class="row"><button class="mini" data-a="tab" data-v="friends" aria-label="Volver">${I.left}</button><span class="avatar alt lg">${esc((f.nickname||'?').slice(0,2))}</span><div><h2>${esc(f.nickname)}</h2><div class="muted">${esc(f.city||'')}</div></div></div>`;
+  if(!f.workouts)return `<div class="stack">${head}<p class="muted">Cargando su progreso…</p></div>`;
+  const H=f.workouts;let vol=0,sets=0,time=0;H.forEach(r=>{const s=recStats(r);vol+=s.vol;sets+=s.sets;time+=r.duration});
+  const now=weekStart(Date.now()),wk=new Set(H.map(r=>weekStart(r.date)));let streak=0,w=now;if(!wk.has(w))w-=7*864e5;while(wk.has(w)){streak++;w-=7*864e5}
+  const last7=H.filter(r=>r.date>Date.now()-7*864e5).length;
+  return `<div class="stack">${head}
+  <div class="kpis"><div class="kpi"><div class="v">${H.length}</div><div class="l">Entrenos</div></div><div class="kpi"><div class="v">${streak}<small>sem</small></div><div class="l">Racha semanal</div></div>
+  <div class="kpi"><div class="v">${last7}</div><div class="l">Últimos 7 días</div></div><div class="kpi"><div class="v">${vol>=1e4?(vol/1000).toLocaleString('es-ES',{maximumFractionDigits:1})+'<small>t</small>':fmtNum(vol)+'<small>kg</small>'}</div><div class="l">Volumen total</div></div></div>
+  <section class="stack" style="gap:8px"><h3>Últimos entrenos</h3>${H.length?`<div class="list">${H.slice(-8).reverse().map(r=>{const s=recStats(r);return `<div class="item"><div class="grow"><div class="name">${esc(r.name)}</div><div class="muted num" style="font-size:13px">${fmtDate(r.date)} · ${s.sets} series · ${fmtNum(s.vol)} kg</div></div><button class="btn ghost sm" data-a="copy-friend" data-v="${esc(r.id)}">Hacerlo yo</button></div>`}).join('')}</div>`:`<p class="muted" style="margin:0">Aún no ha guardado ningún entreno.</p>`}</section>
+  <button class="btn primary block" data-a="share-pick" data-v="${f.id}">${I.send} Enviarle uno de mis entrenos</button>
+  <button class="btn danger block" data-a="fr-remove" data-v="${f.id}">Eliminar de mis amigos</button></div>`;
+}
+async function openFriend(id){
+  const f=F.friends.find(x=>x.id===id);if(!f)return;F.friend={...f,workouts:null};view='friend';render();window.scrollTo(0,0);
+  try{const {data,error}=await sb.from('workouts').select('id,name,date,duration,exercises').eq('user_id',id).order('date').limit(500);if(error)throw error;
+    if(F.friend&&F.friend.id===id){F.friend.workouts=data.map(fromRow);softRender()}}catch(e){toast(errMsg(e))}
+}
+const recItems=r=>r.exercises.map(e=>({exId:e.exId,sets:Math.max(1,e.sets.length),target:Math.max(...e.sets.map(x=>x.reps||0))||null}));
+function shareSheet(rec,toId){
+  const acc=F.friends.filter(f=>f.status==='accepted');
+  if(!acc.length){toast('Primero añade a algún amigo en la pestaña Amigos');return}
+  $('#layer').innerHTML=`<div class="overlay" data-a="close-layer"><div class="sheet" role="dialog" aria-modal="true" aria-label="Enviar entreno">
+    <div class="row between"><h2>Enviar “${esc(rec.name)}”</h2><button class="mini" data-a="close-layer" aria-label="Cerrar">${I.x}</button></div>
+    <form data-form="share" class="stack scroll" data-rec="${esc(rec.id)}">
+      <div class="field"><label for="shTo">Para</label><select id="shTo" name="to">${acc.map(f=>`<option value="${f.id}" ${f.id===toId?'selected':''}>${esc(f.nickname)} · ${esc(f.city||'')}</option>`).join('')}</select></div>
+      <div class="field"><label for="shMsg">Mensaje (opcional)</label><input id="shMsg" name="message" maxlength="140" placeholder="¡Pruébalo, es duro!"></div>
+      <p class="muted" style="margin:0;font-size:14px">${rec.exercises.length} ejercicios: ${rec.exercises.map(e=>esc(EXI[e.exId]?.name||e.exId)).join(', ')}</p>
+      <p class="err"></p><button class="btn primary block">${I.send} Enviar</button></form></div></div>`;
+}
+function pickRecSheet(toId){
+  if(!S.history.length){toast('Aún no tienes entrenos guardados para enviar');return}
+  $('#layer').innerHTML=`<div class="overlay" data-a="close-layer"><div class="sheet" role="dialog" aria-modal="true" aria-label="Elige un entreno">
+    <div class="row between"><h2>Elige un entreno</h2><button class="mini" data-a="close-layer" aria-label="Cerrar">${I.x}</button></div>
+    <div class="scroll"><div class="list">${S.history.slice().reverse().slice(0,30).map(r=>`<button class="item" style="border-left:0;border-right:0;border-bottom:0;background:none;text-align:left;width:100%" data-a="share-rec" data-v="${r.id}" data-to="${toId}"><div class="grow"><div class="name">${esc(r.name)}</div><div class="muted" style="font-size:13px">${fmtDate(r.date)} · ${r.exercises.length} ejercicios</div></div>${I.right.replace('<svg','<svg style="width:18px;height:18px"')}</button>`).join('')}</div></div></div></div>`;
+}
+async function invite(){
+  const data={title:'Forja',text:'Entrena conmigo en Forja. Ábrela en Safari y pulsa Compartir › Añadir a pantalla de inicio:',url:APP_URL};
+  try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(data.text+' '+APP_URL);toast('Enlace copiado. Pégalo en WhatsApp o en un mensaje.')}catch(e){toast('Comparte este enlace: '+APP_URL)}
+}
+
+/* Mi perfil */
+function vMe(){const p=A.profile;
+  return `<div class="stack"><h1>Mi perfil</h1>
+  <div class="card row"><span class="avatar lg">${esc(initials(p))}</span><div style="min-width:0"><h3>${esc(p.full_name)}</h3><div class="muted">@${esc(p.nickname)} · ${esc(p.city)}</div><div class="muted" style="font-size:13px;word-break:break-all">${esc(p.email)}</div>${isAdmin()?'<span class="pill" style="margin-top:6px">Administrador</span>':''}</div></div>
+  ${isAdmin()?`<button class="btn primary block" data-a="tab" data-v="admin">${I.shield} Panel de administración</button>`:''}
+  <section class="card stack"><h3>Mis datos</h3>${vProfileForm(true)}</section>
+  <button class="btn ghost block" data-a="invite">${I.send} Invitar a alguien a Forja</button>
+  <button class="btn ghost block" data-a="auth-change-pass">Cambiar mi contraseña</button>
+  <button class="btn danger block" data-a="logout">Cerrar sesión</button></div>`}
+
+/* Administración */
+async function loadAdmin(){
+  try{const [st,us]=await Promise.all([sb.rpc('admin_stats'),sb.rpc('admin_users')]);
+    if(st.error)throw st.error;if(us.error)throw us.error;ADM.stats=st.data;ADM.users=us.data;softRender()}catch(e){toast(errMsg(e))}
+}
+function vAdmin(){
+  if(!isAdmin()){view='me';return vMe()}
+  const head=`<div class="row"><button class="mini" data-a="tab" data-v="me" aria-label="Volver">${I.left}</button><h1>Administración</h1></div>`;
+  if(!ADM.stats||!ADM.users)return `<div class="stack">${head}<p class="muted">Cargando datos…</p></div>`;
+  const s=ADM.stats,sx=s.sex||{},sxMax=Math.max(1,...Object.values(sx)),cities=s.cities||[],cMax=Math.max(1,...cities.map(c=>c.n));
+  const q=ADM.q.toLowerCase();
+  const users=ADM.users.filter(u=>!q||[u.full_name,u.nickname,u.email,u.city].some(x=>(x||'').toLowerCase().includes(q)));
+  return `<div class="stack">${head}
+  <div class="kpis"><div class="kpi"><div class="v">${s.users}</div><div class="l">Usuarios · ${s.new_7d} nuevos esta semana</div></div><div class="kpi"><div class="v">${s.active_7d}</div><div class="l">Han entrenado en 7 días</div></div>
+  <div class="kpi"><div class="v">${s.workouts}</div><div class="l">Entrenos · ${s.workouts_7d} esta semana</div></div><div class="kpi"><div class="v">${s.avg_age??'—'}</div><div class="l">Edad media</div></div>
+  <div class="kpi"><div class="v">${s.friendships}</div><div class="l">Amistades</div></div><div class="kpi"><div class="v">${s.shared}</div><div class="l">Entrenos compartidos</div></div></div>
+  <section class="card stack" style="gap:10px"><h3>Sexo</h3>${Object.entries(sx).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<div class="hbar"><span>${SEX[k]||'Sin completar'}</span><span class="track"><i style="width:${n/sxMax*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</section>
+  <section class="card stack" style="gap:10px"><h3>Ciudades</h3>${cities.length?cities.map(c=>`<div class="hbar"><span>${esc(c.city)}</span><span class="track"><i style="width:${c.n/cMax*100}%"></i></span><span class="n">${c.n}</span></div>`).join(''):'<p class="muted" style="margin:0">Aún no hay datos.</p>'}</section>
+  <section class="stack" style="gap:8px"><div class="row between"><h3>Usuarios (${ADM.users.length})</h3>${s.blocked?`<span class="pill bad">${s.blocked} bloqueados</span>`:''}</div>
+    <input class="search" id="admQ" data-adm-q placeholder="Buscar por nombre, nick, correo o ciudad" value="${esc(ADM.q)}" autocomplete="off">
+    <div class="list">${users.map(u=>`<div class="item admin-row" style="align-items:flex-start"><div class="grow"><div class="name">${esc(u.full_name||'Perfil sin completar')} ${u.role==='admin'?'<span class="pill">Admin</span>':''} ${u.blocked?'<span class="pill bad">Bloqueado</span>':''}</div>
+      <div class="meta">${u.nickname?'@'+esc(u.nickname)+' · ':''}${esc(u.email)}</div>
+      <div class="meta">${[u.age?u.age+' años':'',SEX[u.sex]||'',u.city||''].filter(Boolean).map(esc).join(' · ')||'Sin datos de perfil'}</div>
+      <div class="meta num">Alta ${fmtDate(u.created_at)} · ${u.workouts} entrenos${u.last_workout?' · último '+fmtDate(u.last_workout):''}</div></div>
+      ${u.id===A.user.id?'':`<div class="stack" style="gap:6px"><button class="btn ghost sm" data-a="adm-block" data-v="${u.id}">${u.blocked?'Desbloquear':'Bloquear'}</button><button class="btn danger sm" data-a="adm-delete" data-v="${u.id}">Borrar</button></div>`}</div>`).join('')||'<div class="item"><span class="muted">Nadie coincide con la búsqueda.</span></div>'}</div></section></div>`;
+}
+
+/* Formularios */
+document.addEventListener('submit',async e=>{
+  const f=e.target.closest('form[data-form]');if(!f)return;e.preventDefault();
+  const fd=Object.fromEntries(new FormData(f));const kind=f.dataset.form;setErr(f,'');
+  try{
+    if(kind==='login'){
+      const email=(fd.email||'').trim().toLowerCase();A.email=email;
+      if(!email||!fd.password)return setErr(f,'Escribe tu correo y tu contraseña.');
+      busy(f,true);const {data,error}=await sb.auth.signInWithPassword({email,password:fd.password});busy(f,false);
+      if(error)return setErr(f,errMsg(error));await onSession(data.session);
+    }else if(kind==='send-code'){
+      const email=(fd.email||'').trim().toLowerCase();A.email=email;
+      if(!/^\S+@\S+\.\S+$/.test(email))return setErr(f,'Escribe un correo válido, por ejemplo nombre@gmail.com.');
+      busy(f,true);const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});busy(f,false);
+      if(error)return setErr(f,errMsg(error));A.resendAt=Date.now()+60000;A.mode='code-verify';render();setTimeout(()=>$('#cvCode')?.focus(),50);
+    }else if(kind==='verify-code'){
+      const token=(fd.code||'').replace(/\D/g,'');if(token.length<6)return setErr(f,'Escribe el código que te ha llegado por correo.');
+      busy(f,true);const {data,error}=await sb.auth.verifyOtp({email:A.email,token,type:'email'});busy(f,false);
+      if(error)return setErr(f,errMsg(error));
+      try{localStorage.setItem('forja.needpass',data.user.id)}catch(x){}A.mode='login';await onSession(data.session);
+    }else if(kind==='set-password'){
+      if((fd.password||'').length<8)return setErr(f,'La contraseña debe tener al menos 8 caracteres.');
+      if(fd.password!==fd.password2)return setErr(f,'Las dos contraseñas no coinciden.');
+      busy(f,true);const {error}=await sb.auth.updateUser({password:fd.password});busy(f,false);
+      if(error)return setErr(f,errMsg(error));
+      try{localStorage.removeItem('forja.needpass')}catch(x){}A.needPass=false;toast('Contraseña guardada');render();
+    }else if(kind==='profile'){
+      const nick=(fd.nickname||'').trim(),age=parseInt(fd.age,10),edit=f.dataset.edit==='1';
+      if(!(fd.full_name||'').trim())return setErr(f,'Escribe tu nombre y apellidos.');
+      if(!/^[A-Za-z0-9_.]{3,20}$/.test(nick))return setErr(f,'El nick debe tener entre 3 y 20 caracteres: letras sin tilde, números, punto o guion bajo.');
+      if(!(age>=10&&age<=110))return setErr(f,'Escribe una edad válida.');
+      if(!fd.sex)return setErr(f,'Elige una opción en sexo.');
+      if(!(fd.city||'').trim())return setErr(f,'Escribe la ciudad donde entrenas.');
+      const row={full_name:fd.full_name.trim(),nickname:nick,age,sex:fd.sex,city:fd.city.trim(),discoverable:!!fd.discoverable};
+      busy(f,true);const {data,error}=await sb.from('profiles').update(row).eq('id',A.user.id).select().single();busy(f,false);
+      if(error)return setErr(f,errMsg(error));
+      A.profile=data;S.profile=data;save();
+      if(edit){toast('Perfil guardado');render()}else{view='train';render();window.scrollTo(0,0);syncAll();refreshSocial();toast('¡Bienvenido a Forja, '+nick+'!')}
+    }else if(kind==='search'){
+      const q=(fd.q||'').trim();F.q=q;if(q.length<2){F.results=null;render();return toast('Escribe al menos 2 letras')}
+      busy(f,true);const {data,error}=await sb.rpc('search_profiles',{q});busy(f,false);if(error)throw error;F.results=data||[];render();
+    }else if(kind==='share'){
+      const rec=S.history.find(r=>r.id===f.dataset.rec);if(!rec)return;
+      busy(f,true);const {error}=await sb.from('shared_workouts').insert({from_user:A.user.id,to_user:fd.to,name:rec.name,items:recItems(rec),message:(fd.message||'').trim()||null});busy(f,false);
+      if(error)return setErr(f,errMsg(error));closeLayer();toast('Entreno enviado a '+(F.friends.find(x=>x.id===fd.to)?.nickname||'tu amigo'));
+    }
+  }catch(err){busy(f,false);setErr(f,errMsg(err))}
+});
+
+/* Acciones */
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
+  try{switch(a){
+    case 'auth-mode':A.mode=v;render();break;
+    case 'auth-retry':A.offline=false;render();await loadProfile();render();break;
+    case 'resend-code':{const left=Math.ceil((A.resendAt-Date.now())/1000);if(left>0)return toast(`Espera ${left} s para pedir otro código`);
+      const {error}=await sb.auth.signInWithOtp({email:A.email,options:{shouldCreateUser:true}});if(error)return toast(errMsg(error));A.resendAt=Date.now()+60000;toast('Te hemos enviado otro código');break}
+    case 'logout':confirmBox('¿Cerrar sesión?','Tus entrenos están guardados en tu cuenta. Podrás volver a entrar con tu correo y contraseña.','Cerrar sesión',logout,false);break;
+    case 'pass-cancel':try{localStorage.removeItem('forja.needpass')}catch(x){}A.needPass=false;render();break;
+    case 'auth-change-pass':try{localStorage.setItem('forja.needpass',A.user.id)}catch(x){}A.needPass=true;render();window.scrollTo(0,0);break;
+    case 'tab':if(v==='friends')refreshSocial();if(v==='admin'){ADM.stats=null;ADM.users=null;loadAdmin()}break;
+    case 'invite':invite();break;
+    case 'fr-add':{const {error}=await sb.from('friendships').insert({requester:A.user.id,addressee:v});if(error)throw error;toast('Solicitud enviada');await refreshSocial();render();break}
+    case 'fr-accept':{const {error}=await sb.from('friendships').update({status:'accepted'}).eq('requester',v).eq('addressee',A.user.id);if(error)throw error;toast('¡Ahora sois amigos!');await refreshSocial();render();break}
+    case 'fr-del':{const {error}=await sb.from('friendships').delete().or(`and(requester.eq.${A.user.id},addressee.eq.${v}),and(requester.eq.${v},addressee.eq.${A.user.id})`);if(error)throw error;await refreshSocial();render();break}
+    case 'fr-remove':confirmBox('¿Eliminar de tus amigos?','Dejaréis de ver vuestro progreso y de poder enviaros entrenos.','Eliminar',async()=>{await sb.from('friendships').delete().or(`and(requester.eq.${A.user.id},addressee.eq.${v}),and(requester.eq.${v},addressee.eq.${A.user.id})`);F.friend=null;view='friends';await refreshSocial();render()});break;
+    case 'fr-open':openFriend(v);break;
+    case 'copy-friend':{const r=F.friend?.workouts?.find(x=>x.id===v);if(r)startSession(r.name+' · de '+F.friend.nickname,recItems(r));break}
+    case 'share-rec':{const r=S.history.find(x=>x.id===v);if(!r)return;if(!F.friends.length)await refreshSocial();shareSheet(r,b.dataset.to);break}
+    case 'share-pick':pickRecSheet(v);break;
+    case 'inbox-start':{const x=F.inbox.find(i=>i.id===v);if(!x)return;sb.from('shared_workouts').update({seen:true}).eq('id',v).then(()=>refreshSocial());x.seen=true;startSession(x.name+' · de '+(x.from_nick||'un amigo'),(x.items||[]).filter(it=>EXI[it.exId]));break}
+    case 'inbox-del':{const {error}=await sb.from('shared_workouts').delete().eq('id',v);if(error)throw error;await refreshSocial();render();break}
+    case 'adm-block':{const u=ADM.users.find(x=>x.id===v);if(!u)return;
+      confirmBox(u.blocked?'¿Desbloquear esta cuenta?':'¿Bloquear esta cuenta?',u.blocked?`${u.email} podrá volver a usar Forja.`:`${u.email} no podrá usar Forja hasta que la desbloquees. Sus datos se conservan.`,u.blocked?'Desbloquear':'Bloquear',async()=>{const {error}=await sb.from('profiles').update({blocked:!u.blocked}).eq('id',v);if(error)return toast(errMsg(error));toast(u.blocked?'Cuenta desbloqueada':'Cuenta bloqueada');loadAdmin()},!u.blocked);break}
+    case 'adm-delete':{const u=ADM.users.find(x=>x.id===v);if(!u)return;
+      confirmBox('¿Borrar esta cuenta?',`Se borrarán para siempre la cuenta de ${u.email}, su perfil, sus entrenos y sus amistades. No se puede deshacer.`,'Borrar para siempre',async()=>{const {error}=await sb.rpc('admin_delete_user',{uid:v});if(error)return toast(errMsg(error));toast('Cuenta borrada');loadAdmin()});break}
+  }}catch(err){toast(errMsg(err))}
+});
+document.addEventListener('input',e=>{if(e.target.matches('[data-adm-q]')){ADM.q=e.target.value;const pos=e.target.selectionStart;render();const i=$('#admQ');if(i){i.focus();try{i.setSelectionRange(pos,pos)}catch(x){}}}});
+
+authInit();
 </script>
 <script>
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
