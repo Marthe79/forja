@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Forja">
+<meta name="theme-color" content="#EDEFF2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1114" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;-webkit-text-size-adjust:100%}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<title>Forja Entrenos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Forja">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: app de una columna (máx. 560px), cabecera fija arriba y barra de pestañas abajo, como una app nativa de iPhone. */
+:root{
+  --bg:#EDEFF2; --surface:#FFFFFF; --surface-2:#E2E6EB; --ink:#14181D; --muted:#58626E; --line:#D2D7DE;
+  --accent:#D9480F; --accent-ink:#FFFFFF; --accent-soft:#FBE4D7;
+  --ok:#2B8A3E; --ok-soft:#DCF1E0; --danger:#C92A2A; --shadow:0 1px 2px rgba(20,24,29,.08),0 6px 18px rgba(20,24,29,.06);
+  --f-display:"Barlow Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Barlow",-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E1114; --surface:#171B20; --surface-2:#222831; --ink:#ECEFF3; --muted:#9AA4B0; --line:#2B323B;
+  --accent:#FF7A3D; --accent-ink:#1B0C04; --accent-soft:#3A2217;
+  --ok:#5BD172; --ok-soft:#183020; --danger:#FF6B6B; --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E1114; --surface:#171B20; --surface-2:#222831; --ink:#ECEFF3; --muted:#9AA4B0; --line:#2B323B;
+  --accent:#FF7A3D; --accent-ink:#1B0C04; --accent-soft:#3A2217;
+  --ok:#5BD172; --ok-soft:#183020; --danger:#FF6B6B; --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;padding-block:0 calc(92px + env(safe-area-inset-bottom,0px))}
+
+/* Cabecera */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding-block:12px 10px;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:.02em;text-transform:uppercase}
+.brand svg{width:30px;height:30px}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.iconbtn svg{width:20px;height:20px}
+
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:34px;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
+h2{font-size:24px;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+h3{font-size:19px;font-weight:700}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.num{font-variant-numeric:tabular-nums}
+
+/* Pasos */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-block:6px 18px}
+.step{display:flex;flex-direction:column;gap:6px;background:none;border:0;padding:0;text-align:left}
+.step .bar{height:5px;border-radius:3px;background:var(--surface-2)}
+.step.on .bar,.step.done .bar{background:var(--accent)}
+.step .lbl{font-size:13px;font-weight:600;color:var(--muted)}
+.step.on .lbl{color:var(--ink)}
+.step .lbl b{font-family:var(--f-display);font-size:15px;margin-right:4px}
+
+/* Rejilla de equipo */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{position:relative;border:1.5px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;min-height:108px}
+.tile svg{width:64px;height:40px;color:var(--muted)}
+.tile .t{font-weight:600;font-size:15px}
+.tile .c{font-size:12px;color:var(--muted)}
+.tile[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tile[aria-pressed="true"] svg{color:var(--accent)}
+.tick{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center}
+.tile[aria-pressed="true"] .tick{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tick svg{width:12px;height:12px}
+
+/* Chips músculos */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:15px;display:flex;gap:8px;align-items:center}
+.chip small{font-weight:500;color:var(--muted);font-size:12px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip[aria-pressed="true"] small{color:inherit;opacity:.7}
+.chip:disabled{opacity:.4}
+.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;background:var(--surface-2);color:var(--muted)}
+.tag.pri{background:var(--accent-soft);color:var(--accent)}
+
+/* Lista de ejercicios */
+.list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.item{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .grow{flex:1;min-width:0}
+.item .name{font-weight:600}
+.item .sub{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.ord{font-family:var(--f-display);font-weight:700;font-size:20px;color:var(--muted);width:22px;text-align:center}
+.mini{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;flex:none}
+.mini svg{width:18px;height:18px}
+.group-h{padding:10px 14px;background:var(--surface-2);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* Botones */
+.btn{border:0;border-radius:12px;padding:14px 18px;font-weight:700;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;border:1.5px solid var(--line)}
+.btn.danger{background:transparent;border:1.5px solid var(--danger);color:var(--danger)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:18px;height:18px}
+.actions{display:flex;gap:10px;margin-top:18px}
+.actions .btn{flex:1}
+
+/* Tarjetas */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.prog{display:flex;flex-direction:column;gap:12px}
+.prog .meta{display:flex;gap:6px;flex-wrap:wrap}
+.days{display:flex;flex-direction:column;gap:8px}
+.day{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg)}
+.day .grow{min-width:0}
+.day small{display:block;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Banner sesión activa */
+.live{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.live .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent)}
+.live button{background:var(--accent);color:var(--accent-ink);border:0;border-radius:9px;padding:8px 12px;font-weight:700}
+
+/* Sesión */
+.sess-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-block:4px 12px}
+.clock{font-family:var(--f-display);font-weight:700;font-size:28px;font-variant-numeric:tabular-nums}
+.pager{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
+.pager button{flex:none;min-width:36px;height:36px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-family:var(--f-display);font-weight:700;font-size:17px}
+.pager button.cur{border-color:var(--accent);color:var(--accent)}
+.pager button.full{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.exname{font-size:30px}
+.tip{font-size:14px;color:var(--muted);margin-top:6px}
+.sets{width:100%;border-collapse:separate;border-spacing:0 6px;margin-top:8px}
+.sets th{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center;padding:0 4px}
+.sets td{text-align:center;padding:0 3px}
+.sets td:first-child{font-family:var(--f-display);font-weight:700;font-size:20px;width:34px}
+.sets .prev{font-size:13px;color:var(--muted);white-space:nowrap}
+.sets input{width:100%;max-width:84px;height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);text-align:center;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.sets input::placeholder{color:var(--muted);opacity:.6}
+.sets tr.done input{background:var(--ok-soft);border-color:transparent}
+.check{width:44px;height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.check svg{width:20px;height:20px}
+tr.done .check{background:var(--ok);border-color:var(--ok);color:#fff}
+.rest{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:30;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.rest .in{max-width:560px;margin:0 auto 8px;background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.rest .fill{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--accent) 35%,transparent);transition:width .25s linear}
+.rest .in>*{position:relative}
+.rest .t{font-family:var(--f-display);font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;min-width:72px}
+.rest button{border:0;border-radius:9px;padding:8px 10px;font-weight:700;background:color-mix(in srgb,var(--bg) 18%,transparent);color:inherit}
+
+/* Estadísticas */
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .v{font-family:var(--f-display);font-size:34px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:16px;font-weight:600;color:var(--muted);margin-left:3px}
+.kpi .l{font-size:13px;color:var(--muted);margin-top:4px}
+.chart svg{width:100%;height:auto;display:block}
+.hbar{display:grid;grid-template-columns:110px 1fr 36px;gap:10px;align-items:center;font-size:14px}
+.hbar .track{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.hbar .track i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.hbar .n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.empty{text-align:center;padding:28px 18px;border:1.5px dashed var(--line);border-radius:var(--r)}
+.empty svg{width:48px;height:48px;color:var(--muted)}
+
+/* Herramientas */
+.field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.field label{font-size:13px;font-weight:600;color:var(--muted)}
+.field input,.field select,textarea{height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);padding:0 12px;font-size:17px;font-variant-numeric:tabular-nums;width:100%}
+textarea{height:90px;padding:10px 12px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+.big{font-family:var(--f-display);font-size:48px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.ptable{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.ptable td{padding:6px 0;border-top:1px solid var(--line)}
+.ptable td:last-child{text-align:right;font-weight:600}
+.plates{display:flex;align-items:center;gap:3px;min-height:90px;overflow-x:auto}
+.plates .barend{width:46px;height:10px;background:var(--muted);border-radius:2px}
+.plates .p{border-radius:4px;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;writing-mode:vertical-rl}
+.seg{display:flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;padding:8px;border-radius:8px;font-weight:600;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:var(--shadow)}
+
+/* Pestañas */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs button{border:0;background:none;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--muted)}
+.tabs button svg{width:24px;height:24px}
+.tabs button[aria-current="page"]{color:var(--accent)}
+
+/* Hoja y modal */
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(10,12,15,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;max-height:86%;display:flex;flex-direction:column;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet .scroll{overflow-y:auto;margin-top:12px;-webkit-overflow-scrolling:touch}
+.dialog{align-items:center;padding:16px}
+.dialog .box{background:var(--surface);border-radius:16px;padding:20px;max-width:360px;width:100%}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:80;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:90%}
+/* Demostraciones animadas */
+.demo{position:relative;width:100%;max-width:100%;aspect-ratio:3/2;border-radius:12px;overflow:hidden;background:#FFFFFF;border:1px solid var(--line)}
+.demo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.demo img+img{opacity:0;animation:flip 2.2s ease-in-out infinite}
+@keyframes flip{0%,40%{opacity:0}50%,90%{opacity:1}100%{opacity:0}}
+.demo.none{display:grid;place-items:center;background:var(--surface-2);color:var(--muted)}
+.demo.none svg{width:40%;height:40%}
+.demo.thumb{width:64px;flex:none;border-radius:9px}
+.demo.thumb.none svg{width:70%}
+.thumbbtn{border:0;padding:0;background:none;flex:none;border-radius:9px}
+.strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.strip .demo.thumb{width:56px}
+.yt{text-decoration:none;color:var(--ink);padding:11px 14px;font-size:15px}
+.yt svg{width:22px;height:22px}
+.search{height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);padding:0 12px;width:100%;font-size:16px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}.demo img+img{animation-duration:4s}}
+</style>
+
+<div class="app" id="app"></div>
+<nav class="tabs" aria-label="Secciones"><div class="in" id="tabs"></div></nav>
+<div id="layer"></div>
+
+<script>
+/* ---------- Iconos ---------- */
+const I={
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  minus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+  left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  logo:'<svg viewBox="0 0 32 32"><rect x="2" y="2" width="28" height="28" rx="8" fill="var(--accent)"/><path d="M7 13h18v3H7zM9 16h14l-2 4H11zM13 20h6v6h-6z" fill="var(--accent-ink)"/></svg>',
+  train:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>',
+  prog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4M8 14h3M8 17h6"/></svg>',
+  stats:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V11M10 20V5M16 20v-7M22 20H2"/></svg>',
+  tools:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg>',
+  play:'<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="#E62117"/><path d="M10 9l5 3-5 3z" fill="#fff"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
+};
+const EQ_SVG={
+  bw:'<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="7" r="4"/><path d="M32 12v13M20 16l12 2 12-2M32 25l-7 12M32 25l7 12"/></svg>',
+  dumbbell:'<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="10" width="7" height="20" rx="2"/><rect x="47" y="10" width="7" height="20" rx="2"/><path d="M17 20h30M5 15v10M59 15v10"/></svg>',
+  barbell:'<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h60"/><rect x="11" y="6" width="5" height="28" rx="1.5"/><rect x="17" y="10" width="4" height="20" rx="1.5"/><rect x="48" y="6" width="5" height="28" rx="1.5"/><rect x="43" y="10" width="4" height="20" rx="1.5"/></svg>',
+  kettlebell:'<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 15c0-10 16-10 16 0"/><path d="M22 16h20c4 4 6 8 6 12 0 5-4 9-8 9H24c-4 0-8-4-8-9 0-4 2-8 6-12z"/></svg>',
+  band:'<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 28c6-16 14-16 24-8s18 8 24-8"/><path d="M8 34c6-16 14-16 24-8s18 8 24-8" opacity=".5"/></svg>',
+  plate:'<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="3"><circle cx="32" cy="20" r="17"/><circle cx="32" cy="20" r="9"/><circle cx="32" cy="20" r="2.5"/></svg>',
+  pullupbar:'<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6h52M12 6v32M52 6v32M20 6v-2M44 6v-2"/></svg>',
+  bench:'<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="14" width="52" height="7" rx="3"/><path d="M14 21v15M50 21v15M10 36h8M46 36h8"/></svg>',
+};
+
+/* ---------- Datos ---------- */
+const EQUIP=[['bw','Peso corporal'],['dumbbell','Mancuernas'],['barbell','Barra'],['kettlebell','Kettlebell'],['band','Banda elástica'],['plate','Discos'],['pullupbar','Barra de dominadas'],['bench','Banco']].map(([id,name])=>({id,name}));
+const MUSCLES=[['pecho','Pecho'],['espalda','Espalda'],['hombros','Hombros'],['trapecio','Trapecio'],['biceps','Bíceps'],['triceps','Tríceps'],['antebrazos','Antebrazos'],['abdominales','Abdominales'],['oblicuos','Oblicuos'],['lumbares','Lumbares'],['cuadriceps','Cuádriceps'],['isquios','Isquiotibiales'],['gluteos','Glúteos'],['gemelos','Gemelos']].map(([id,name])=>({id,name}));
+const MNAME=Object.fromEntries(MUSCLES.map(m=>[m.id,m.name]));
+/* [id, nombre, equipo requerido ("a|b" = cualquiera), músculos (1º = principal), tipo, consejo] */
+const EX_RAW=[
+ ['flexiones','Flexiones',['bw'],['pecho','triceps','hombros'],'reps','Cuerpo en línea recta; baja hasta que el pecho casi toque el suelo.'],
+ ['flex_diamante','Flexiones diamante',['bw'],['triceps','pecho'],'reps','Manos juntas formando un rombo bajo el pecho; codos pegados.'],
+ ['flex_decl','Flexiones declinadas',['bench'],['pecho','hombros','triceps'],'reps','Pies sobre el banco; más carga en la parte alta del pecho.'],
+ ['flex_incl','Flexiones inclinadas',['bench'],['pecho','triceps'],'reps','Manos en el banco. Versión más fácil para empezar.'],
+ ['press_banca','Press de banca con barra',['barbell','bench'],['pecho','triceps','hombros'],'reps','Escápulas juntas, barra al esternón, pies firmes.'],
+ ['press_banca_mc','Press de banca con mancuernas',['dumbbell','bench'],['pecho','triceps','hombros'],'reps','Baja las mancuernas a la altura del pecho con control.'],
+ ['press_incl_mc','Press inclinado con mancuernas',['dumbbell','bench'],['pecho','hombros','triceps'],'reps','Banco a 30–45°. Empuja hacia arriba y ligeramente adentro.'],
+ ['aperturas','Aperturas con mancuernas',['dumbbell','bench'],['pecho'],'reps','Codos ligeramente flexionados; abre hasta notar el estiramiento.'],
+ ['press_suelo','Press en el suelo con mancuernas',['dumbbell'],['pecho','triceps'],'reps','Tumbado en el suelo; los codos tocan el suelo en cada repetición.'],
+ ['press_banda','Press de pecho con banda',['band'],['pecho','triceps'],'reps','Banda tras la espalda; empuja al frente sin encoger hombros.'],
+ ['aperturas_banda','Aperturas con banda',['band'],['pecho'],'reps','Brazos semiextendidos; junta las manos al frente.'],
+ ['dominadas','Dominadas',['pullupbar'],['espalda','biceps'],'reps','Agarre prono; sube hasta pasar la barbilla de la barra.'],
+ ['dominadas_sup','Dominadas supinas',['pullupbar'],['biceps','espalda'],'reps','Palmas hacia ti; más trabajo de bíceps.'],
+ ['remo_invertido','Remo invertido',['pullupbar'],['espalda','biceps'],'reps','Barra baja, cuerpo recto; lleva el pecho a la barra.'],
+ ['remo_barra','Remo con barra',['barbell'],['espalda','biceps','lumbares'],'reps','Torso a 45°, espalda neutra, barra al ombligo.'],
+ ['remo_mc','Remo a una mano con mancuerna',['dumbbell','bench'],['espalda','biceps'],'reps','Apoya rodilla y mano en el banco; codo hacia la cadera.'],
+ ['remo_kb','Remo con kettlebell',['kettlebell'],['espalda','biceps'],'reps','Bisagra de cadera; tira de la kettlebell hacia la cadera.'],
+ ['remo_banda','Remo con banda',['band'],['espalda','biceps'],'reps','Banda anclada a la altura del pecho; junta escápulas.'],
+ ['jalon_banda','Jalón con banda',['band'],['espalda'],'reps','Banda anclada arriba; tira hacia el pecho.'],
+ ['pullover','Pullover con mancuerna',['dumbbell','bench'],['espalda','pecho'],'reps','Tumbado en el banco; lleva la mancuerna tras la cabeza con brazos largos.'],
+ ['peso_muerto','Peso muerto con barra',['barbell'],['lumbares','espalda','isquios','gluteos'],'reps','Barra pegada a las piernas, espalda neutra, empuja el suelo.'],
+ ['superman','Superman',['bw'],['lumbares','gluteos'],'reps','Boca abajo; eleva brazos y piernas a la vez y aguanta 1 s.'],
+ ['hiperext_banco','Hiperextensiones en banco',['bench'],['lumbares','gluteos','isquios'],'reps','Cadera en el borde del banco; sube hasta alinear el cuerpo.'],
+ ['buenos_dias','Buenos días con barra',['barbell'],['lumbares','isquios'],'reps','Barra en la espalda; inclina el torso con rodillas suaves.'],
+ ['press_militar','Press militar con barra',['barbell'],['hombros','triceps'],'reps','De pie, glúteos y abdomen firmes; barra por encima de la cabeza.'],
+ ['press_hombro_mc','Press de hombros con mancuernas',['dumbbell'],['hombros','triceps'],'reps','Sentado o de pie; no arquees la zona lumbar.'],
+ ['press_kb','Press de hombro con kettlebell',['kettlebell'],['hombros','triceps'],'reps','Kettlebell en posición de rack; empuja en línea recta.'],
+ ['elev_lat','Elevaciones laterales',['dumbbell'],['hombros'],'reps','Sube hasta la altura de los hombros, sin balanceo.'],
+ ['elev_lat_banda','Elevaciones laterales con banda',['band'],['hombros'],'reps','Pisa la banda; eleva los brazos hacia los lados.'],
+ ['elev_frontal_disco','Elevación frontal con disco',['plate'],['hombros'],'reps','Sujeta el disco por los lados y elévalo hasta los ojos.'],
+ ['pajaros','Pájaros (deltoides posterior)',['dumbbell'],['hombros','espalda'],'reps','Torso inclinado; abre los brazos llevando los codos atrás.'],
+ ['face_pull','Face pull con banda',['band'],['hombros','trapecio'],'reps','Tira de la banda hacia la cara separando las manos.'],
+ ['encog_mc','Encogimientos con mancuernas',['dumbbell'],['trapecio'],'reps','Sube los hombros hacia las orejas; pausa arriba.'],
+ ['encog_barra','Encogimientos con barra',['barbell'],['trapecio'],'reps','Brazos estirados; solo se mueven los hombros.'],
+ ['remo_menton','Remo al mentón con barra',['barbell'],['trapecio','hombros'],'reps','Agarre a la anchura de hombros; codos por encima de las manos.'],
+ ['curl_barra','Curl de bíceps con barra',['barbell'],['biceps','antebrazos'],'reps','Codos fijos a los costados; sin balancear.'],
+ ['curl_mc','Curl con mancuernas',['dumbbell'],['biceps'],'reps','Gira las palmas hacia arriba al subir.'],
+ ['curl_martillo','Curl martillo',['dumbbell'],['biceps','antebrazos'],'reps','Palmas enfrentadas durante todo el recorrido.'],
+ ['curl_conc','Curl concentrado',['dumbbell','bench'],['biceps'],'reps','Sentado, codo apoyado en el muslo.'],
+ ['curl_banda','Curl con banda',['band'],['biceps'],'reps','Pisa la banda y flexiona los codos.'],
+ ['curl_kb','Curl con kettlebell',['kettlebell'],['biceps','antebrazos'],'reps','Sujeta por el asa; el peso cuelga por debajo.'],
+ ['press_frances','Press francés',['barbell|dumbbell','bench'],['triceps'],'reps','Tumbado; baja el peso hacia la frente moviendo solo los codos.'],
+ ['ext_nuca','Extensión de tríceps tras nuca',['dumbbell|kettlebell'],['triceps'],'reps','Codos apuntando al techo; extiende por completo.'],
+ ['patada_triceps','Patada de tríceps',['dumbbell'],['triceps'],'reps','Torso inclinado, codo alto; extiende hacia atrás.'],
+ ['ext_banda','Extensión de tríceps con banda',['band'],['triceps'],'reps','Banda anclada arriba; empuja hacia abajo.'],
+ ['fondos_banco','Fondos en banco',['bench'],['triceps','pecho'],'reps','Manos en el banco tras de ti; baja hasta 90° de codo.'],
+ ['press_cerrado','Press de banca agarre cerrado',['barbell','bench'],['triceps','pecho'],'reps','Manos a la anchura de hombros; codos pegados.'],
+ ['curl_muneca','Curl de muñeca con mancuernas',['dumbbell'],['antebrazos'],'reps','Antebrazos apoyados en los muslos; mueve solo la muñeca.'],
+ ['granjero','Paseo del granjero',['dumbbell|kettlebell'],['antebrazos','trapecio','abdominales'],'time','Camina erguido con peso pesado en cada mano.'],
+ ['colgarse','Colgarse de la barra',['pullupbar'],['antebrazos','espalda'],'time','Brazos extendidos, hombros activos.'],
+ ['pinza_disco','Pinza con discos',['plate'],['antebrazos'],'time','Sujeta discos con la punta de los dedos.'],
+ ['crunch','Crunch abdominal',['bw'],['abdominales'],'reps','Despega los hombros del suelo exhalando.'],
+ ['plancha','Plancha',['bw'],['abdominales','hombros'],'time','Antebrazos en el suelo, glúteos apretados, sin hundir la cadera.'],
+ ['elev_piernas','Elevación de piernas tumbado',['bw'],['abdominales'],'reps','Zona lumbar pegada al suelo; baja despacio.'],
+ ['elev_piernas_colg','Elevación de piernas colgado',['pullupbar'],['abdominales','antebrazos'],'reps','Sin balanceo; sube las rodillas o piernas rectas.'],
+ ['mountain','Escaladores',['bw'],['abdominales','hombros'],'time','Posición de flexión; lleva rodillas al pecho rápido.'],
+ ['dead_bug','Dead bug',['bw'],['abdominales'],'reps','Extiende brazo y pierna contrarios sin despegar la espalda.'],
+ ['crunch_disco','Crunch con disco',['plate'],['abdominales'],'reps','Disco sobre el pecho; sube controlando.'],
+ ['russian','Giros rusos',['bw'],['oblicuos','abdominales'],'reps','Pies elevados; gira el torso de lado a lado.'],
+ ['russian_disco','Giros rusos con disco',['plate'],['oblicuos','abdominales'],'reps','Lleva el disco a cada lado de la cadera.'],
+ ['plancha_lat','Plancha lateral',['bw'],['oblicuos'],'time','Cuerpo recto de lado; cadera alta. Cambia de lado.'],
+ ['bicicleta','Crunch bicicleta',['bw'],['oblicuos','abdominales'],'reps','Codo hacia la rodilla contraria, alternando.'],
+ ['lenador','Leñador con banda',['band'],['oblicuos'],'reps','Tira en diagonal de arriba abajo girando el torso.'],
+ ['windmill','Molino con kettlebell',['kettlebell'],['oblicuos','hombros'],'reps','Kettlebell arriba; inclina el torso mirando el peso.'],
+ ['sentadilla','Sentadilla',['bw'],['cuadriceps','gluteos'],'reps','Pies a la anchura de hombros; cadera atrás y abajo.'],
+ ['sentadilla_barra','Sentadilla con barra',['barbell'],['cuadriceps','gluteos','lumbares'],'reps','Barra sobre trapecios; rodillas en línea con los pies.'],
+ ['goblet','Sentadilla goblet',['dumbbell|kettlebell'],['cuadriceps','gluteos'],'reps','Peso pegado al pecho; torso erguido.'],
+ ['zancadas','Zancadas',['bw'],['cuadriceps','gluteos'],'reps','Paso largo; la rodilla de atrás casi toca el suelo.'],
+ ['zancadas_mc','Zancadas con mancuernas',['dumbbell'],['cuadriceps','gluteos'],'reps','Una mancuerna en cada mano; torso recto.'],
+ ['bulgara','Sentadilla búlgara',['bench'],['cuadriceps','gluteos'],'reps','Pie trasero sobre el banco; baja en vertical.'],
+ ['step_up','Subidas al banco',['bench'],['cuadriceps','gluteos'],'reps','Sube empujando con el talón del pie apoyado.'],
+ ['sent_salto','Sentadilla con salto',['bw'],['cuadriceps','gemelos','gluteos'],'reps','Aterriza suave y enlaza la siguiente repetición.'],
+ ['sent_banda','Sentadilla con banda',['band'],['cuadriceps','gluteos'],'reps','Pisa la banda y sujétala a la altura de los hombros.'],
+ ['rumano_mc','Peso muerto rumano con mancuernas',['dumbbell'],['isquios','gluteos','lumbares'],'reps','Rodillas suaves; lleva la cadera atrás hasta notar el estiramiento.'],
+ ['rumano_barra','Peso muerto rumano con barra',['barbell'],['isquios','gluteos','lumbares'],'reps','Barra pegada a los muslos, espalda neutra.'],
+ ['swing','Swing con kettlebell',['kettlebell'],['isquios','gluteos','lumbares'],'reps','Movimiento explosivo de cadera; los brazos solo guían.'],
+ ['puente_1p','Puente femoral a una pierna',['bw'],['isquios','gluteos'],'reps','Talón apoyado; eleva la cadera con una pierna.'],
+ ['curl_fem_banda','Curl femoral con banda',['band'],['isquios'],'reps','Boca abajo, banda en el tobillo; flexiona la rodilla.'],
+ ['nordic','Curl nórdico',['bw'],['isquios'],'reps','Talones sujetos; baja el cuerpo lo más lento posible.'],
+ ['hip_thrust','Hip thrust con barra',['barbell','bench'],['gluteos','isquios'],'reps','Espalda alta en el banco; empuja la cadera hacia el techo.'],
+ ['hip_thrust_bw','Hip thrust',['bench'],['gluteos','isquios'],'reps','Sin peso o con mancuerna en la cadera; pausa arriba.'],
+ ['puente','Puente de glúteo',['bw'],['gluteos','isquios'],'reps','Tumbado boca arriba; aprieta glúteos arriba 1 s.'],
+ ['patada_banda','Patada de glúteo con banda',['band'],['gluteos'],'reps','A cuatro patas; extiende la pierna hacia atrás.'],
+ ['abd_banda','Abducción con banda',['band'],['gluteos'],'reps','Banda sobre las rodillas; ábrelas contra la resistencia.'],
+ ['sumo_kb','Sentadilla sumo con kettlebell',['kettlebell|dumbbell'],['gluteos','cuadriceps'],'reps','Pies abiertos, puntas afuera; peso entre las piernas.'],
+ ['talones','Elevación de talones',['bw'],['gemelos'],'reps','Sube de puntillas y baja despacio.'],
+ ['talones_mc','Elevación de talones con mancuernas',['dumbbell'],['gemelos'],'reps','Puedes apoyar la punta en un escalón para más recorrido.'],
+ ['talones_barra','Elevación de talones con barra',['barbell'],['gemelos'],'reps','Barra en la espalda; pausa arriba.'],
+ ['talones_sent','Elevación de talones sentado con disco',['plate','bench'],['gemelos'],'reps','Disco sobre las rodillas; sube los talones.'],
+ ['press_incl_barra','Press inclinado con barra',['barbell','bench'],['pecho','hombros','triceps'],'reps','Banco a 30–45°; baja la barra a la parte alta del pecho.'],
+ ['flex_abiertas','Flexiones abiertas',['bw'],['pecho','hombros'],'reps','Manos más abiertas que los hombros; más trabajo de pecho.'],
+ ['aperturas_incl','Aperturas inclinadas con mancuernas',['dumbbell','bench'],['pecho','hombros'],'reps','Banco inclinado; abre con los codos suaves y junta arriba.'],
+ ['press_suelo_kb','Press en el suelo con kettlebell',['kettlebell'],['pecho','triceps'],'reps','Tumbado; empuja con un brazo y baja hasta tocar el suelo con el codo.'],
+ ['remo_dos_mc','Remo inclinado con dos mancuernas',['dumbbell'],['espalda','biceps'],'reps','Torso inclinado y espalda neutra; lleva ambos codos atrás.'],
+ ['remo_pecho_apoyado','Remo con pecho apoyado',['dumbbell','bench'],['espalda','hombros'],'reps','Pecho sobre el banco inclinado; tira sin despegarte.'],
+ ['remo_supino','Remo con barra agarre supino',['barbell'],['espalda','biceps'],'reps','Palmas hacia arriba; lleva la barra al abdomen.'],
+ ['remo_kb_alt','Remo alterno con kettlebells',['kettlebell'],['espalda','biceps'],'reps','Dos kettlebells; tira de una cada vez con el torso quieto.'],
+ ['dominadas_abiertas','Dominadas agarre abierto',['pullupbar'],['espalda','hombros'],'reps','Manos muy separadas; sube con el pecho hacia la barra.'],
+ ['press_arnold','Press Arnold',['dumbbell'],['hombros','triceps'],'reps','Empieza con las palmas hacia ti y gíralas al subir.'],
+ ['elev_frontal_mc','Elevación frontal con mancuernas',['dumbbell'],['hombros'],'reps','Brazos casi rectos; sube hasta la altura de los ojos.'],
+ ['press_hombro_banda','Press de hombros con banda',['band'],['hombros','triceps'],'reps','Pisa la banda y empuja por encima de la cabeza.'],
+ ['pull_apart','Separación de banda (pull apart)',['band'],['hombros','espalda','trapecio'],'reps','Brazos al frente; separa la banda juntando las escápulas.'],
+ ['press_arnold_kb','Press Arnold con kettlebell',['kettlebell'],['hombros','triceps'],'reps','Gira la muñeca mientras empujas la kettlebell hacia arriba.'],
+ ['encog_tras','Encogimientos con barra por detrás',['barbell'],['trapecio'],'reps','Barra detrás de los muslos; sube los hombros hacia las orejas.'],
+ ['encog_explosivo','Encogimiento explosivo con barra',['barbell'],['trapecio','isquios'],'reps','Extiende cadera y rodillas y encoge los hombros con fuerza.'],
+ ['encog_ancho','Encogimiento con agarre ancho',['barbell'],['trapecio'],'reps','Agarre muy abierto; encoge de forma explosiva.'],
+ ['tiron_sumo_kb','Tirón alto sumo con kettlebell',['kettlebell'],['trapecio','hombros','gluteos'],'reps','Postura sumo; tira de la kettlebell hasta el pecho con los codos altos.'],
+ ['remo_menton_mc','Remo al mentón con mancuernas',['dumbbell'],['trapecio','hombros'],'reps','Mancuernas pegadas al cuerpo; codos por encima de las manos.'],
+ ['remo_menton_banda','Remo al mentón con banda',['band'],['trapecio','hombros'],'reps','Pisa la banda y tira hacia la barbilla.'],
+ ['dominada_escapular','Dominada escapular',['pullupbar'],['trapecio','espalda'],'reps','Colgado con brazos rectos; baja y junta las escápulas sin doblar codos.'],
+ ['curl_alterno','Curl alterno con mancuernas',['dumbbell'],['biceps'],'reps','Alterna los brazos; gira la palma hacia arriba al subir.'],
+ ['curl_incl','Curl inclinado con mancuernas',['dumbbell','bench'],['biceps'],'reps','Sentado en banco inclinado; brazos colgando detrás del cuerpo.'],
+ ['curl_zottman','Curl Zottman',['dumbbell'],['biceps','antebrazos'],'reps','Sube con las palmas arriba y baja con las palmas abajo.'],
+ ['curl_martillo_cruzado','Curl martillo cruzado',['dumbbell'],['biceps','antebrazos'],'reps','Lleva la mancuerna hacia el hombro contrario.'],
+ ['ext_tumbado_mc','Extensión de tríceps tumbado con mancuernas',['dumbbell','bench'],['triceps'],'reps','Codos hacia el techo; baja las mancuernas junto a la cabeza.'],
+ ['press_cerrado_mc','Press cerrado con mancuernas',['dumbbell','bench'],['triceps','pecho'],'reps','Mancuernas juntas sobre el pecho; codos pegados.'],
+ ['press_tate','Press Tate',['dumbbell','bench'],['triceps'],'reps','Codos hacia fuera; baja las mancuernas al pecho doblando solo los codos.'],
+ ['press_frances_banda','Press francés con banda',['band'],['triceps'],'reps','Tumbado con la banda anclada detrás; extiende los codos.'],
+ ['flex_cerradas_incl','Flexiones cerradas inclinadas',['bench'],['triceps','pecho'],'reps','Manos juntas sobre el banco; codos pegados al cuerpo.'],
+ ['curl_muneca_inv','Curl de muñeca inverso',['dumbbell'],['antebrazos'],'reps','Palmas hacia abajo; sube solo el dorso de la mano.'],
+ ['curl_muneca_barra','Curl de muñeca con barra',['barbell'],['antebrazos'],'reps','Sentado, antebrazos sobre los muslos; flexiona las muñecas.'],
+ ['curl_inverso_barra','Curl inverso con barra',['barbell'],['antebrazos','biceps'],'reps','Agarre prono; sube la barra con los codos fijos.'],
+ ['curl_inverso_mc','Curl inverso con mancuernas',['dumbbell'],['antebrazos','biceps'],'reps','Palmas hacia abajo durante todo el recorrido.'],
+ ['curl_dedos','Curl de dedos con barra',['barbell'],['antebrazos'],'reps','Deja rodar la barra hasta los dedos y vuelve a cerrarlos.'],
+ ['rot_muneca','Rotaciones de muñeca con barra',['barbell'],['antebrazos'],'reps','Gira la barra con las muñecas de un lado a otro.'],
+ ['pronacion_mc','Pronación con mancuerna',['dumbbell','bench'],['antebrazos'],'reps','Antebrazo apoyado; gira la mancuerna de palma arriba a palma abajo.'],
+ ['sit_up','Abdominales completos (sit-up)',['bw'],['abdominales'],'reps','Sube el torso hasta quedar sentado y baja controlando.'],
+ ['crunch_inverso','Crunch inverso',['bw'],['abdominales'],'reps','Lleva las rodillas al pecho despegando la cadera del suelo.'],
+ ['navaja','Navaja (jackknife)',['bw'],['abdominales'],'reps','Sube brazos y piernas a la vez hasta tocarte los pies.'],
+ ['recog_piernas','Recogimientos de piernas sentado',['bw'],['abdominales'],'reps','Sentado e inclinado atrás; recoge y estira las piernas.'],
+ ['rueda_barra','Rueda abdominal con barra',['barbell'],['abdominales','hombros'],'reps','De rodillas; rueda la barra al frente sin hundir la zona lumbar.'],
+ ['toques_talon','Toques de talón',['bw'],['oblicuos'],'reps','Tumbado con rodillas dobladas; toca un talón y luego el otro.'],
+ ['crunch_oblicuo','Crunch oblicuo',['bw'],['oblicuos'],'reps','De lado; lleva el hombro hacia la cadera.'],
+ ['incl_lat_mc','Inclinación lateral con mancuerna',['dumbbell'],['oblicuos'],'reps','De pie; inclina el torso hacia el lado de la mancuerna y vuelve.'],
+ ['navaja_lateral','Navaja lateral',['bw'],['oblicuos'],'reps','Tumbado de lado; eleva la pierna y el torso a la vez.'],
+ ['giro_barra','Giros sentado con barra',['barbell'],['oblicuos'],'reps','Barra en la espalda; gira el torso con la cadera quieta.'],
+ ['ocho_kb','Ocho con kettlebell',['kettlebell'],['oblicuos','abdominales'],'reps','Pasa la kettlebell en forma de 8 entre las piernas.'],
+ ['bd_rigidas','Buenos días con piernas rígidas',['barbell'],['lumbares','isquios'],'reps','Piernas casi rectas; inclina el torso con la espalda neutra.'],
+ ['bd_sentado','Buenos días sentado',['barbell','bench'],['lumbares'],'reps','Sentado en el banco con la barra en la espalda; inclínate adelante.'],
+ ['bd_banda','Buenos días con banda',['band'],['lumbares','isquios'],'reps','Banda bajo los pies y sobre la nuca; bisagra de cadera.'],
+ ['rack_pull','Peso muerto parcial (rack pull)',['barbell'],['lumbares','espalda','trapecio'],'reps','Barra a la altura de las rodillas; extiende la cadera.'],
+ ['pm_deficit','Peso muerto en déficit',['barbell','plate'],['lumbares','isquios','gluteos'],'reps','De pie sobre un disco para tener más recorrido.'],
+ ['puente_pelvico','Puente con basculación pélvica',['bw'],['lumbares','gluteos'],'reps','Bascula la pelvis y sube vértebra a vértebra.'],
+ ['gato_camello','Gato-camello',['bw'],['lumbares'],'reps','A cuatro patas; alterna espalda redondeada y arqueada despacio.'],
+ ['sent_frontal_kb','Sentadilla frontal con dos kettlebells',['kettlebell'],['cuadriceps','gluteos'],'reps','Kettlebells en posición de rack; torso muy erguido.'],
+ ['zancada_atras_mc','Zancada atrás con mancuernas',['dumbbell'],['cuadriceps','gluteos'],'reps','Da un paso atrás y baja la rodilla casi al suelo.'],
+ ['sent_mc','Sentadilla con mancuernas',['dumbbell'],['cuadriceps','gluteos'],'reps','Mancuernas a los lados; baja con el pecho alto.'],
+ ['sent_frontal','Sentadilla frontal con barra',['barbell'],['cuadriceps','gluteos'],'reps','Barra sobre los hombros por delante; codos altos.'],
+ ['zancada_barra','Zancadas con barra',['barbell'],['cuadriceps','gluteos'],'reps','Barra en la espalda; paso largo y controlado.'],
+ ['pm_1p_kb','Peso muerto a una pierna con kettlebell',['kettlebell'],['isquios','gluteos'],'reps','Inclínate sobre una pierna con la otra estirada atrás.'],
+ ['pm_rigidas_barra','Peso muerto con piernas rígidas',['barbell'],['isquios','lumbares'],'reps','Rodillas casi rectas; baja la barra pegada a las piernas.'],
+ ['pull_through','Pull through con banda',['band'],['isquios','gluteos'],'reps','Banda entre las piernas; extiende la cadera de golpe.'],
+ ['cargada_kb','Cargada con kettlebell',['kettlebell'],['isquios','gluteos','hombros'],'reps','Lleva la kettlebell del suelo al hombro con un impulso de cadera.'],
+ ['patada_gluteo','Patada de glúteo',['bw'],['gluteos'],'reps','A cuatro patas; empuja el talón hacia el techo.'],
+ ['elev_pierna_atras','Elevación de pierna atrás de pie',['bw'],['gluteos'],'reps','Apóyate en un banco o silla; eleva una pierna recta hacia atrás.'],
+ ['step_rodilla','Subida al banco con elevación de rodilla',['bench'],['gluteos','cuadriceps'],'reps','Sube al banco y eleva la rodilla contraria.'],
+ ['puente_barra','Puente de glúteo con barra',['barbell'],['gluteos','isquios'],'reps','Barra sobre la cadera, espalda en el suelo; empuja hacia arriba.'],
+ ['pm_sumo','Peso muerto sumo',['barbell'],['gluteos','isquios','cuadriceps'],'reps','Pies muy abiertos; agarre por dentro de las piernas.'],
+ ['hip_lift_banda','Elevación de cadera con banda',['band'],['gluteos'],'reps','Banda sobre la cadera anclada al suelo; sube la cadera.'],
+ ['talones_1p_sent','Elevación de talón sentado a una pierna',['dumbbell','bench'],['gemelos'],'reps','Mancuerna sobre la rodilla; sube el talón.'],
+ ['talones_banda','Elevación de talones con banda',['band'],['gemelos'],'reps','Banda bajo la punta de los pies; empuja como si pisaras un pedal.'],
+ ['talones_sent_barra','Elevación de talones sentado con barra',['barbell','bench'],['gemelos'],'reps','Barra sobre los muslos; sube los talones.'],
+ ['talones_balanceo','Elevación de talones con balanceo',['barbell'],['gemelos'],'reps','Alterna puntas y talones con la barra en la espalda.'],
+ ['talones_sobre_mc','Elevación de talones sobre mancuerna',['dumbbell'],['gemelos'],'reps','Puntas sobre el mango de una mancuerna para más recorrido.'],
+ ['comba','Saltar a la comba',['bw'],['gemelos','cuadriceps'],'time','Saltos bajos y rápidos sobre la punta de los pies. Necesitas una comba.'],
+];
+/* Fotos (inicio/fin del movimiento) de free-exercise-db, dominio público (Unlicense) */
+const IMG={flexiones:"Pushups",flex_diamante:"Push-Ups_-_Close_Triceps_Position",flex_decl:"Decline_Push-Up",flex_incl:"Incline_Push-Up",press_banca:"Barbell_Bench_Press_-_Medium_Grip",press_banca_mc:"Dumbbell_Bench_Press",press_incl_mc:"Incline_Dumbbell_Press",aperturas:"Dumbbell_Flyes",press_suelo:"Dumbbell_Floor_Press",press_banda:"Standing_Cable_Chest_Press",aperturas_banda:"Cross_Over_-_With_Bands",dominadas:"Pullups",dominadas_sup:"Chin-Up",remo_invertido:"Inverted_Row",remo_barra:"Bent_Over_Barbell_Row",remo_mc:"One-Arm_Dumbbell_Row",remo_kb:"One-Arm_Kettlebell_Row",remo_banda:"Seated_Cable_Rows",jalon_banda:"Wide-Grip_Lat_Pulldown",pullover:"Bent-Arm_Dumbbell_Pullover",peso_muerto:"Barbell_Deadlift",superman:"Superman",hiperext_banco:"Hyperextensions_With_No_Hyperextension_Bench",buenos_dias:"Good_Morning",press_militar:"Standing_Military_Press",press_hombro_mc:"Dumbbell_Shoulder_Press",press_kb:"Alternating_Kettlebell_Press",elev_lat:"Side_Lateral_Raise",elev_lat_banda:"Lateral_Raise_-_With_Bands",elev_frontal_disco:"Front_Plate_Raise",pajaros:"Seated_Bent-Over_Rear_Delt_Raise",face_pull:"Face_Pull",encog_mc:"Dumbbell_Shrug",encog_barra:"Barbell_Shrug",remo_menton:"Upright_Barbell_Row",curl_barra:"Barbell_Curl",curl_mc:"Dumbbell_Bicep_Curl",curl_martillo:"Hammer_Curls",curl_conc:"Concentration_Curls",curl_banda:"Close-Grip_EZ-Bar_Curl_with_Band",curl_kb:"Hammer_Curls",press_frances:"EZ-Bar_Skullcrusher",ext_nuca:"Standing_Dumbbell_Triceps_Extension",patada_triceps:"Tricep_Dumbbell_Kickback",ext_banda:"Triceps_Pushdown",fondos_banco:"Bench_Dips",press_cerrado:"Close-Grip_Barbell_Bench_Press",curl_muneca:"Seated_Dumbbell_Palms-Up_Wrist_Curl",granjero:"Farmers_Walk",colgarse:"One_Handed_Hang",pinza_disco:"Plate_Pinch",crunch:"Crunches",plancha:"Plank",elev_piernas:"Flat_Bench_Lying_Leg_Raise",elev_piernas_colg:"Hanging_Leg_Raise",mountain:"Mountain_Climbers",dead_bug:"Dead_Bug",crunch_disco:"Crunches",russian:"Russian_Twist",russian_disco:"Plate_Twist",plancha_lat:"Side_Bridge",bicicleta:"Air_Bike",lenador:"Standing_Cable_Wood_Chop",windmill:"Kettlebell_Windmill",sentadilla:"Bodyweight_Squat",sentadilla_barra:"Barbell_Squat",goblet:"Goblet_Squat",zancadas:"Bodyweight_Walking_Lunge",zancadas_mc:"Dumbbell_Lunges",bulgara:"Split_Squats",step_up:"Dumbbell_Step_Ups",sent_salto:"Freehand_Jump_Squat",sent_banda:"Squats_-_With_Bands",rumano_mc:"Stiff-Legged_Dumbbell_Deadlift",rumano_barra:"Romanian_Deadlift",swing:"One-Arm_Kettlebell_Swings",puente_1p:"Single_Leg_Glute_Bridge",curl_fem_banda:"Lying_Leg_Curls",nordic:"Natural_Glute_Ham_Raise",hip_thrust:"Barbell_Hip_Thrust",hip_thrust_bw:"Barbell_Hip_Thrust",puente:"Butt_Lift_Bridge",patada_banda:"Hip_Extension_with_Bands",abd_banda:"Monster_Walk",sumo_kb:"Plie_Dumbbell_Squat",talones:"Standing_Calf_Raises",talones_mc:"Standing_Dumbbell_Calf_Raise",talones_barra:"Standing_Barbell_Calf_Raise",talones_sent:"Seated_Calf_Raise",press_incl_barra:"Barbell_Incline_Bench_Press_-_Medium_Grip",flex_abiertas:"Push-Up_Wide",aperturas_incl:"Incline_Dumbbell_Flyes",press_suelo_kb:"One-Arm_Kettlebell_Floor_Press",remo_dos_mc:"Bent_Over_Two-Dumbbell_Row",remo_pecho_apoyado:"Dumbbell_Incline_Row",remo_supino:"Reverse_Grip_Bent-Over_Rows",remo_kb_alt:"Alternating_Kettlebell_Row",dominadas_abiertas:"Wide-Grip_Rear_Pull-Up",press_arnold:"Arnold_Dumbbell_Press",elev_frontal_mc:"Front_Dumbbell_Raise",press_hombro_banda:"Shoulder_Press_-_With_Bands",pull_apart:"Band_Pull_Apart",press_arnold_kb:"Kettlebell_Arnold_Press",encog_tras:"Barbell_Shrug_Behind_The_Back",encog_explosivo:"Clean_Shrug",encog_ancho:"Snatch_Shrug",tiron_sumo_kb:"Kettlebell_Sumo_High_Pull",remo_menton_mc:"Standing_Dumbbell_Upright_Row",remo_menton_banda:"Upright_Row_-_With_Bands",dominada_escapular:"Scapular_Pull-Up",curl_alterno:"Dumbbell_Alternate_Bicep_Curl",curl_incl:"Incline_Dumbbell_Curl",curl_zottman:"Zottman_Curl",curl_martillo_cruzado:"Cross_Body_Hammer_Curl",ext_tumbado_mc:"Lying_Dumbbell_Tricep_Extension",press_cerrado_mc:"Close-Grip_Dumbbell_Press",press_tate:"Tate_Press",press_frances_banda:"Band_Skull_Crusher",flex_cerradas_incl:"Incline_Push-Up_Close-Grip",curl_muneca_inv:"Seated_Dumbbell_Palms-Down_Wrist_Curl",curl_muneca_barra:"Seated_Palm-Up_Barbell_Wrist_Curl",curl_inverso_barra:"Reverse_Barbell_Curl",curl_inverso_mc:"Standing_Dumbbell_Reverse_Curl",curl_dedos:"Finger_Curls",rot_muneca:"Wrist_Rotations_with_Straight_Bar",pronacion_mc:"Dumbbell_Lying_Pronation",sit_up:"Sit-Up",crunch_inverso:"Reverse_Crunch",navaja:"Jackknife_Sit-Up",recog_piernas:"Seated_Leg_Tucks",rueda_barra:"Barbell_Ab_Rollout",toques_talon:"Alternate_Heel_Touchers",crunch_oblicuo:"Oblique_Crunches_-_On_The_Floor",incl_lat_mc:"Dumbbell_Side_Bend",navaja_lateral:"Side_Jackknife",giro_barra:"Seated_Barbell_Twist",ocho_kb:"Kettlebell_Figure_8",bd_rigidas:"Stiff_Leg_Barbell_Good_Morning",bd_sentado:"Seated_Good_Mornings",bd_banda:"Band_Good_Morning",rack_pull:"Rack_Pulls",pm_deficit:"Deficit_Deadlift",puente_pelvico:"Pelvic_Tilt_Into_Bridge",gato_camello:"Cat_Stretch",sent_frontal_kb:"Front_Squats_With_Two_Kettlebells",zancada_atras_mc:"Dumbbell_Rear_Lunge",sent_mc:"Dumbbell_Squat",sent_frontal:"Front_Barbell_Squat",zancada_barra:"Barbell_Lunge",pm_1p_kb:"Kettlebell_One-Legged_Deadlift",pm_rigidas_barra:"Stiff-Legged_Barbell_Deadlift",pull_through:"Band_Good_Morning_Pull_Through",cargada_kb:"Kettlebell_Dead_Clean",patada_gluteo:"Glute_Kickback",elev_pierna_atras:"Leg_Lift",step_rodilla:"Step-up_with_Knee_Raise",puente_barra:"Barbell_Glute_Bridge",pm_sumo:"Sumo_Deadlift",hip_lift_banda:"Hip_Lift_with_Band",talones_1p_sent:"Dumbbell_Seated_One-Leg_Calf_Raise",talones_banda:"Calf_Raises_-_With_Bands",talones_sent_barra:"Barbell_Seated_Calf_Raise",talones_balanceo:"Rocking_Standing_Calf_Raise",talones_sobre_mc:"Calf_Raise_On_A_Dumbbell",comba:"Rope_Jumping"};
+const EX=EX_RAW.map(([id,name,eq,mus,kind,tip])=>({id,name,eq,mus,kind,tip}));
+const EXI=Object.fromEntries(EX.map(e=>[e.id,e]));
+
+/* Programas: días con [ejercicio, series, reps/segundos objetivo] */
+const PROGRAMS=[
+ {id:'inicio',name:'Cuerpo completo · Inicio',level:'Principiante',weeks:'6 semanas',freq:'3 días/sem',eq:['bw','dumbbell'],desc:'Para empezar con buena técnica: tres sesiones de todo el cuerpo con mancuernas y peso corporal.',
+  days:[{n:'Día A',x:[['goblet',3,12],['press_suelo',3,10],['remo_mc',3,10],['puente',3,15],['plancha',3,30]]},
+        {n:'Día B',x:[['zancadas_mc',3,10],['press_hombro_mc',3,10],['flex_incl',3,10],['rumano_mc',3,12],['dead_bug',3,10]]},
+        {n:'Día C',x:[['sentadilla',3,15],['flexiones',3,8],['remo_mc',3,12],['curl_mc',2,12],['plancha_lat',2,25]]}]},
+ {id:'casa',name:'En casa sin material',level:'Todos',weeks:'4 semanas',freq:'3 días/sem',eq:['bw'],desc:'Solo tu cuerpo. Ideal para viajes o días sin gimnasio.',
+  days:[{n:'Empuje y pierna',x:[['sentadilla',4,20],['flexiones',4,12],['zancadas',3,12],['flex_abiertas',3,10],['plancha',3,40]]},
+        {n:'Posterior y core',x:[['puente_1p',3,12],['superman',3,15],['nordic',3,5],['navaja',3,12],['russian',3,20]]},
+        {n:'Circuito',x:[['sent_salto',4,12],['flex_diamante',4,10],['mountain',4,40],['puente',3,20],['bicicleta',3,20]]}]},
+ {id:'ppl',name:'Empuje / Tirón / Pierna',level:'Intermedio',weeks:'8 semanas',freq:'3–6 días/sem',eq:['barbell','dumbbell','bench','pullupbar'],desc:'La división clásica de gimnasio. Repite el ciclo una o dos veces por semana.',
+  days:[{n:'Empuje',x:[['press_banca',4,8],['press_incl_mc',3,10],['press_militar',3,8],['elev_lat',3,15],['press_frances',3,12]]},
+        {n:'Tirón',x:[['dominadas',4,6],['remo_barra',4,8],['pajaros',3,15],['curl_barra',3,10],['curl_martillo',3,12]]},
+        {n:'Pierna',x:[['sentadilla_barra',4,6],['rumano_barra',3,8],['bulgara',3,10],['hip_thrust',3,10],['talones_barra',4,15]]}]},
+ {id:'torso',name:'Torso / Pierna',level:'Intermedio',weeks:'8 semanas',freq:'4 días/sem',eq:['barbell','dumbbell','bench','pullupbar'],desc:'Dos sesiones de torso y dos de pierna por semana, con fuerza y volumen.',
+  days:[{n:'Torso fuerza',x:[['press_banca',5,5],['remo_barra',5,5],['press_militar',3,6],['dominadas',3,6]]},
+        {n:'Pierna fuerza',x:[['sentadilla_barra',5,5],['peso_muerto',3,5],['zancadas_mc',3,8],['plancha',3,45]]},
+        {n:'Torso volumen',x:[['press_incl_mc',4,10],['remo_mc',4,10],['elev_lat',4,15],['curl_mc',3,12],['ext_nuca',3,12]]},
+        {n:'Pierna volumen',x:[['goblet',4,12],['rumano_mc',4,10],['hip_thrust',4,12],['step_up',3,10],['talones_mc',4,15]]}]},
+ {id:'kb',name:'Kettlebell total',level:'Todos',weeks:'4 semanas',freq:'2–3 días/sem',eq:['kettlebell'],desc:'Una sola kettlebell para entrenar todo el cuerpo con potencia de cadera.',
+  days:[{n:'Sesión única',x:[['swing',5,15],['goblet',4,10],['press_kb',4,8],['remo_kb',4,10],['windmill',3,6],['granjero',3,40]]}]},
+ {id:'core',name:'Core en 15 minutos',level:'Todos',weeks:'Continuo',freq:'2–4 días/sem',eq:['bw'],desc:'Bloque corto de abdomen y oblicuos para añadir al final de cualquier sesión.',
+  days:[{n:'Core',x:[['plancha',3,40],['dead_bug',3,12],['bicicleta',3,20],['plancha_lat',2,30],['crunch_inverso',3,15]]}]},
+];
+
+/* ---------- Estado ---------- */
+const KEY='forja.v1';
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&Array.isArray(s.history))return s}catch(e){}return null}
+const S=Object.assign({
+  settings:{rest:90,theme:null},
+  history:[],active:null,
+  wiz:{step:1,equip:['bw','dumbbell'],muscles:[],list:[],sig:''}
+},load()||{});
+let view=S.active?'session':'train';
+let summaryId=null;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function applyTheme(){if(S.settings.theme)document.documentElement.setAttribute('data-theme',S.settings.theme);else document.documentElement.removeAttribute('data-theme')}
+applyTheme();
+
+/* ---------- Utilidades ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmtTime=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
+const fmtNum=n=>Math.round(n).toLocaleString('es-ES');
+const fmtDate=t=>new Date(t).toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'});
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function canDo(ex,eqSet){return ex.eq.every(r=>r.split('|').some(e=>eqSet.has(e)))}
+function eqLabel(ex){return ex.eq.map(r=>r.split('|').map(e=>EQUIP.find(q=>q.id===e).name).join(' o ')).join(' + ')}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+let actx=null;
+function beep(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();[0,.22,.44].forEach((d,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=i==2?1180:880;o.connect(g);g.connect(actx.destination);const t=actx.currentTime+d;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.18);o.start(t);o.stop(t+.2)})}catch(e){}if(navigator.vibrate)navigator.vibrate([200,100,200]);native({haptic:true})}
+/* Puente con la app nativa de iPhone (no hace nada en la web) */
+function native(msg){try{window.webkit?.messageHandlers?.forja?.postMessage(msg)}catch(e){}}
+function unlockAudio(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume()}catch(e){}}
+let wake=null;
+async function keepAwake(on){native({awake:!!on});try{if(on&&!wake&&navigator.wakeLock){wake=await navigator.wakeLock.request('screen');wake.addEventListener('release',()=>wake=null)}else if(!on&&wake){wake.release();wake=null}}catch(e){}}
+/* Demostración: dos fotos (inicio y fin) que se alternan como un GIF */
+function demo(id,cls=''){
+  const f=IMG[id],e=EXI[id];
+  if(!f)return `<div class="demo none ${cls}" aria-label="Sin foto para ${esc(e.name)}">${EQ_SVG[e.eq[0].split('|')[0]]}</div>`;
+  return `<div class="demo ${cls}" role="img" aria-label="Demostración de ${esc(e.name)}"><img src="img/${f}/0.jpg" alt="" loading="lazy" decoding="async"><img src="img/${f}/1.jpg" alt="" loading="lazy" decoding="async"></div>`;
+}
+const ytUrl=id=>'https://www.youtube.com/results?search_query='+encodeURIComponent('cómo hacer '+EXI[id].name+' técnica correcta');
+const ytBtn=(id,extra='')=>`<a class="btn ghost yt" href="${ytUrl(id)}" target="_blank" rel="noopener" ${extra}>${I.play} Ver vídeo en YouTube</a>`;
+function infoSheet(id){
+  const e=EXI[id];
+  $('#layer').innerHTML=`<div class="overlay" data-a="close-layer"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(e.name)}">
+    <div class="row between"><h2>${e.name}</h2><button class="mini" data-a="close-layer" aria-label="Cerrar">${I.x}</button></div>
+    <div class="scroll stack">${demo(id)}
+      <div class="row wrap" style="gap:6px">${e.mus.map((m,i)=>`<span class="tag ${i?'':'pri'}">${MNAME[m]}</span>`).join('')}<span class="tag">${eqLabel(e)}</span>${e.kind==='time'?'<span class="tag">Por tiempo</span>':''}</div>
+      <p style="margin:0">${e.tip}</p>${ytBtn(id)}</div></div></div>`;
+}
+function lastPerf(exId){for(let i=S.history.length-1;i>=0;i--){const e=S.history[i].exercises.find(x=>x.exId===exId);if(e&&e.sets.length)return e.sets}return null}
+
+/* ---------- Modal / hoja ---------- */
+function closeLayer(){$('#layer').innerHTML=''}
+function confirmBox(title,text,okLabel,onOk,danger=true){
+  $('#layer').innerHTML=`<div class="overlay dialog" data-a="close-layer"><div class="box stack" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <h2>${esc(title)}</h2><p class="muted" style="margin:0">${esc(text)}</p>
+    <div class="actions" style="margin-top:6px"><button class="btn ghost" data-a="close-layer">Cancelar</button><button class="btn ${danger?'danger':'primary'}" id="okbtn">${esc(okLabel)}</button></div></div></div>`;
+  $('#okbtn').onclick=()=>{closeLayer();onOk()};
+}
+
+/* ---------- Render principal ---------- */
+function render(){
+  const app=$('#app');
+  const top=`<header class="top"><div class="brand">${I.logo}Forja</div>
+    <button class="iconbtn" data-a="theme" aria-label="Cambiar tema claro/oscuro">${isDark()?I.sun:I.moon}</button></header>`;
+  let body='';
+  if(view==='session'&&S.active)body=vSession();
+  else if(view==='summary')body=vSummary();
+  else{
+    if(view==='session')view='train';
+    const live=S.active?`<div class="live"><div class="row"><span class="dot"></span><div><b>Entreno en curso</b><div style="font-size:13px;opacity:.75"><span data-elapsed></span> · ${esc(S.active.name)}</div></div></div><button data-a="resume">Continuar</button></div>`:'';
+    body=live+({train:vTrain,programs:vPrograms,stats:vStats,tools:vTools}[view])();
+  }
+  app.innerHTML=top+body+restBar();
+  renderTabs();
+  tick();
+}
+function isDark(){return S.settings.theme?S.settings.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches}
+function renderTabs(){
+  const cur=view==='session'||view==='summary'?'train':view;
+  $('#tabs').innerHTML=[['train','Entrenar',I.train],['programs','Programas',I.prog],['stats','Estadísticas',I.stats],['tools','Herramientas',I.tools]]
+   .map(([id,l,ic])=>`<button data-a="tab" data-v="${id}" ${cur===id?'aria-current="page"':''}>${ic}${l}</button>`).join('');
+}
+
+/* ---------- Entrenar: asistente ---------- */
+function vTrain(){
+  const w=S.wiz;
+  const steps=[['Equipo','Selecciona tu equipo'],['Músculos','Elige qué entrenar'],['Ejercicios','Ajusta tu sesión']];
+  const head=`<div class="steps">${steps.map((s,i)=>`<button class="step ${w.step===i+1?'on':''} ${w.step>i+1?'done':''}" data-a="goto-step" data-v="${i+1}" ${i+1>maxStep()?'disabled':''}><span class="bar"></span><span class="lbl"><b>${i+1}</b>${s[0]}</span></button>`).join('')}</div>`;
+  let inner='';
+  const eqSet=new Set(w.equip);
+  if(w.step===1){
+    inner=`<div class="stack"><div><h1>¿Con qué entrenas hoy?</h1><p class="muted" style="margin:6px 0 0">Marca todo el equipo que tengas a mano. Solo verás ejercicios que puedas hacer.</p></div>
+    <div class="grid">${EQUIP.map(e=>{const on=w.equip.includes(e.id);return `<button class="tile" aria-pressed="${on}" data-a="eq" data-v="${e.id}"><span class="tick">${on?I.check:''}</span>${EQ_SVG[e.id]}<span class="t">${e.name}</span></button>`}).join('')}</div>
+    <p class="muted num" style="margin:0;font-size:14px">${EX.filter(e=>canDo(e,eqSet)).length} ejercicios disponibles con tu selección.</p></div>
+    <div class="actions"><button class="btn primary" data-a="next" ${w.equip.length?'':'disabled'}>Continuar ${I.right}</button></div>`;
+  }else if(w.step===2){
+    inner=`<div class="stack"><div><h1>¿Qué quieres trabajar?</h1><p class="muted" style="margin:6px 0 0">Elige uno o varios grupos musculares. El número indica cuántos ejercicios tienes disponibles con tu equipo; en el siguiente paso eliges cuántos usar.</p></div>
+    <div class="chips">${MUSCLES.map(m=>{const n=EX.filter(e=>canDo(e,eqSet)&&e.mus.includes(m.id)).length;const on=w.muscles.includes(m.id);return `<button class="chip" aria-pressed="${on}" data-a="mu" data-v="${m.id}" ${n?'':'disabled'}>${m.name}<small>${n}</small></button>`}).join('')}</div>
+    <div class="row wrap"><button class="btn ghost" data-a="mu-preset" data-v="pecho,triceps,hombros" style="padding:9px 12px;font-size:14px">Empuje</button><button class="btn ghost" data-a="mu-preset" data-v="espalda,biceps,trapecio" style="padding:9px 12px;font-size:14px">Tirón</button><button class="btn ghost" data-a="mu-preset" data-v="cuadriceps,isquios,gluteos,gemelos" style="padding:9px 12px;font-size:14px">Pierna</button><button class="btn ghost" data-a="mu-preset" data-v="pecho,espalda,hombros,cuadriceps,isquios,abdominales" style="padding:9px 12px;font-size:14px">Cuerpo completo</button></div></div>
+    <div class="actions"><button class="btn ghost" data-a="prev">${I.left} Anterior</button><button class="btn primary" data-a="next" ${w.muscles.length?'':'disabled'}>Continuar ${I.right}</button></div>`;
+  }else{
+    ensureList();
+    const byM={};w.list.forEach(id=>{const m=pickGroup(id);(byM[m]=byM[m]||[]).push(id)});
+    let n=0;
+    inner=`<div class="stack"><div><h1>Tu sesión</h1><p class="muted" style="margin:6px 0 0">Toca una foto para ver el ejercicio y su vídeo. Cambia ${I.swap.replace('<svg','<svg style="width:15px;height:15px;vertical-align:-2px"')} o quita ejercicios hasta que te guste. Se generan 3 series por ejercicio.</p></div>
+    <div class="field"><label>Ejercicios por músculo</label><div class="seg">${[[2,'2'],[3,'3'],[4,'4'],[5,'5'],[0,'Todos']].map(([v,l])=>`<button data-a="per" data-v="${v}" aria-pressed="${(w.per??3)===v}">${l}</button>`).join('')}</div></div>
+    ${w.list.length?`<div class="list">${Object.keys(byM).map(m=>`<div class="group-h row between"><span>${MNAME[m]} · ${byM[m].length} de ${availFor(m).length}</span><button class="btn ghost" style="padding:4px 10px;font-size:12px;letter-spacing:.04em" data-a="add-sheet" data-v="${m}">${I.plus.replace('<svg','<svg style="width:14px;height:14px"')} Añadir</button></div>`+byM[m].map(id=>{const e=EXI[id];n++;return `<div class="item"><button class="thumbbtn" data-a="info" data-v="${id}" aria-label="Ver cómo se hace ${e.name}">${demo(id,'thumb')}</button><div class="grow"><div class="name"><span class="muted num">${n}.</span> ${e.name}</div><div class="sub"><span class="tag">${eqLabel(e)}</span>${e.kind==='time'?'<span class="tag">Tiempo</span>':''}</div></div>
+      <button class="mini" data-a="swap" data-v="${id}" aria-label="Cambiar ${e.name}">${I.swap}</button><button class="mini" data-a="rm" data-v="${id}" aria-label="Quitar ${e.name}">${I.x}</button></div>`}).join('')).join('')}</div>`
+    :`<div class="empty"><p style="margin:0">No queda ningún ejercicio. Añade uno o vuelve a generar la lista.</p></div>`}
+    <div class="row"><button class="btn ghost" data-a="add-sheet" style="flex:1">${I.plus} Añadir</button><button class="btn ghost" data-a="regen" style="flex:1">${I.swap} Regenerar</button></div></div>
+    <div class="actions"><button class="btn ghost" data-a="prev">${I.left}</button><button class="btn primary" data-a="start-custom" ${w.list.length?'':'disabled'} style="flex:4">Empezar · ${w.list.length} ejercicios</button></div>`;
+  }
+  return head+inner;
+}
+function availFor(m){const es=new Set(S.wiz.equip);return EX.filter(e=>canDo(e,es)&&e.mus.includes(m))}
+function maxStep(){const w=S.wiz;return !w.equip.length?1:!w.muscles.length?2:3}
+function pickGroup(id){const e=EXI[id];return S.wiz.muscles.find(m=>e.mus[0]===m)||S.wiz.muscles.find(m=>e.mus.includes(m))||e.mus[0]}
+function ensureList(){
+  const w=S.wiz,sig=w.equip.slice().sort()+'|'+w.muscles.slice().sort()+'|'+(w.per??3);
+  if(w.sig===sig)return;w.sig=sig;genList();
+}
+function genList(){
+  const w=S.wiz,eqSet=new Set(w.equip),used=new Set();w.list=[];
+  const per=(w.per??3)||Infinity;
+  w.muscles.forEach(m=>{
+    const prim=shuffle(EX.filter(e=>canDo(e,eqSet)&&e.mus[0]===m&&!used.has(e.id)));
+    const sec=shuffle(EX.filter(e=>canDo(e,eqSet)&&e.mus.includes(m)&&e.mus[0]!==m&&!used.has(e.id)));
+    [...prim,...sec].slice(0,per).forEach(e=>{used.add(e.id);w.list.push(e.id)});
+  });
+  save();
+}
+
+/* ---------- Programas ---------- */
+function vPrograms(){
+  return `<div class="stack"><div><h1>Programas</h1><p class="muted" style="margin:6px 0 0">Planes con días fijos. Elige un día y empieza; la app recuerda tus pesos de la última vez.</p></div>
+  ${PROGRAMS.map(p=>`<article class="card prog"><div><div class="eyebrow">${p.level} · ${p.freq} · ${p.weeks}</div><h2 style="margin-top:4px">${p.name}</h2><p class="muted" style="margin:6px 0 0;font-size:15px">${p.desc}</p></div>
+    <div class="meta">${p.eq.map(e=>`<span class="tag">${EQUIP.find(q=>q.id===e).name}</span>`).join('')}</div>
+    <div class="days">${p.days.map((d,i)=>`<div class="day"><div class="grow stack" style="gap:6px"><div class="row between"><b>${d.n}</b><button class="btn primary" style="padding:8px 14px;font-size:14px" data-a="start-prog" data-v="${p.id}:${i}">Empezar</button></div>
+      <div class="strip">${d.x.map(x=>`<button class="thumbbtn" data-a="info" data-v="${x[0]}" aria-label="Ver ${EXI[x[0]].name}">${demo(x[0],'thumb')}</button>`).join('')}</div>
+      <small>${d.x.map(x=>`${EXI[x[0]].name} ${x[1]}×${x[2]}${EXI[x[0]].kind==='time'?'s':''}`).join(' · ')}</small></div></div>`).join('')}</div></article>`).join('')}</div>`;
+}
+
+/* ---------- Sesión ---------- */
+function startSession(name,items){
+  const go=()=>{
+    S.active={id:uid(),name,start:Date.now(),idx:0,rest:null,exercises:items.map(it=>({exId:it.exId,target:it.target||null,sets:Array.from({length:it.sets||3},()=>({kg:'',reps:'',done:false}))}))};
+    save();view='session';unlockAudio();keepAwake(true);render();window.scrollTo(0,0);
+  };
+  if(S.active)confirmBox('Ya hay un entreno en curso','Si empiezas otro, el actual se descarta sin guardar.','Descartar y empezar',go);else go();
+}
+function vSession(){
+  const s=S.active,cur=s.exercises[s.idx],ex=EXI[cur.exId],prev=lastPerf(cur.exId)||[];
+  const isT=ex.kind==='time';
+  const pager=s.exercises.map((e,i)=>{const full=e.sets.length&&e.sets.every(x=>x.done);return `<button class="${i===s.idx?'cur':''} ${full?'full':''}" data-a="goto-ex" data-v="${i}" aria-label="Ejercicio ${i+1}: ${EXI[e.exId].name}">${i+1}</button>`}).join('');
+  const rows=cur.sets.map((st,i)=>{const p=prev[i];const ph=p?{kg:p.kg||'',reps:p.reps||''}:{kg:'',reps:cur.target||''};
+    return `<tr class="${st.done?'done':''}"><td>${i+1}</td><td class="prev">${p?(p.kg?p.kg+'×':'')+p.reps+(isT?'s':''):'—'}</td>
+    <td><input inputmode="decimal" aria-label="Kilos serie ${i+1}" id="kg-${s.idx}-${i}" data-set="${i}" data-f="kg" value="${esc(st.kg)}" placeholder="${esc(ph.kg||'0')}"></td>
+    <td><input inputmode="numeric" aria-label="${isT?'Segundos':'Repeticiones'} serie ${i+1}" id="rp-${s.idx}-${i}" data-set="${i}" data-f="reps" value="${esc(st.reps)}" placeholder="${esc(ph.reps||(isT?'30':'10'))}"></td>
+    <td><button class="check" data-a="done" data-v="${i}" aria-label="Completar serie ${i+1}" aria-pressed="${st.done}">${I.check}</button></td></tr>`}).join('');
+  const doneSets=s.exercises.reduce((a,e)=>a+e.sets.filter(x=>x.done).length,0);
+  return `<div class="sess-head"><div><div class="eyebrow">${esc(s.name)}</div><div class="clock" data-elapsed>0:00</div></div>
+    <div class="row"><button class="btn ghost" data-a="leave" style="padding:10px 12px;font-size:14px">Salir</button><button class="btn primary" data-a="finish" style="padding:10px 14px;font-size:14px">${I.flag} Terminar</button></div></div>
+  <div class="pager">${pager}</div>
+  <div class="card">${demo(cur.exId)}<div class="eyebrow num" style="margin-top:12px">Ejercicio ${s.idx+1} de ${s.exercises.length} · ${doneSets} series hechas</div>
+    <h2 class="exname" style="margin-top:4px">${ex.name}</h2>
+    <div class="row wrap" style="gap:6px;margin-top:8px">${ex.mus.map((m,i)=>`<span class="tag ${i?'':'pri'}">${MNAME[m]}</span>`).join('')}<span class="tag">${eqLabel(ex)}</span></div>
+    <p class="tip">${ex.tip}${cur.target?` <b style="color:var(--ink)">Objetivo: ${cur.target}${isT?' s':' reps'}.</b>`:''}</p>
+    <div style="margin-top:10px">${ytBtn(cur.exId,'style="width:100%"')}</div>
+    <table class="sets"><thead><tr><th>Serie</th><th>Anterior</th><th>kg</th><th>${isT?'Seg':'Reps'}</th><th><span style="position:absolute;left:-9999px">Hecha</span></th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="row" style="margin-top:8px"><button class="btn ghost" data-a="add-set" style="flex:1;padding:10px">${I.plus} Serie</button><button class="btn ghost" data-a="rm-set" style="flex:1;padding:10px" ${cur.sets.length>1?'':'disabled'}>${I.minus} Serie</button></div>
+  </div>
+  <div class="actions"><button class="btn ghost" data-a="ex-prev" ${s.idx?'':'disabled'}>${I.left} Anterior</button><button class="btn ${s.idx<s.exercises.length-1?'primary':'ghost'}" data-a="ex-next" ${s.idx<s.exercises.length-1?'':'disabled'}>Siguiente ${I.right}</button></div>
+  <div class="row" style="margin-top:14px;justify-content:center;gap:8px;font-size:14px" ><span class="muted">Descanso entre series</span>
+    <select id="rest-sel" data-a="rest-sel" style="height:36px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);padding:0 8px">${[30,45,60,90,120,150,180,240].map(v=>`<option value="${v}" ${v==S.settings.rest?'selected':''}>${fmtTime(v)}</option>`).join('')}</select></div>`;
+}
+function restBar(){
+  const r=S.active&&S.active.rest;if(!r||view!=='session')return '';
+  return `<div class="rest" aria-live="polite"><div class="in"><span class="fill" data-rest-fill></span><span class="t" data-rest>0:00</span><span style="flex:1;font-weight:600">Descanso</span>
+    <button data-a="rest-add" data-v="-15">−15</button><button data-a="rest-add" data-v="15">+15</button><button data-a="rest-skip">Saltar</button></div></div>`;
+}
+function finishSession(){
+  const s=S.active;
+  const exercises=s.exercises.map(e=>({exId:e.exId,sets:e.sets.filter(x=>x.done).map(x=>({kg:num(x.kg),reps:num(x.reps)}))})).filter(e=>e.sets.length);
+  S.active=null;keepAwake(false);
+  if(!exercises.length){save();view='train';render();toast('No había series completadas; no se ha guardado nada.');return}
+  const rec={id:s.id,name:s.name,date:s.start,duration:Math.round((Date.now()-s.start)/1000),exercises};
+  S.history.push(rec);save();summaryId=rec.id;view='summary';render();window.scrollTo(0,0);
+}
+function recStats(r){let vol=0,sets=0,reps=0;r.exercises.forEach(e=>{const t=EXI[e.exId]?.kind==='time';e.sets.forEach(x=>{sets++;if(!t){reps+=x.reps;vol+=x.kg*x.reps}})});return{vol,sets,reps}}
+function vSummary(){
+  const r=S.history.find(h=>h.id===summaryId);if(!r){view='train';return vTrain()}
+  const st=recStats(r);
+  return `<div class="stack"><div><div class="eyebrow">Entreno guardado · ${fmtDate(r.date)}</div><h1 style="margin-top:4px">¡Buen trabajo!</h1></div>
+  <div class="kpis"><div class="kpi"><div class="v">${fmtTime(r.duration)}</div><div class="l">Duración</div></div><div class="kpi"><div class="v">${st.sets}</div><div class="l">Series completadas</div></div>
+  <div class="kpi"><div class="v">${fmtNum(st.vol)}<small>kg</small></div><div class="l">Volumen levantado</div></div><div class="kpi"><div class="v">${st.reps}</div><div class="l">Repeticiones</div></div></div>
+  <div class="list">${r.exercises.map(e=>`<div class="item"><div class="grow"><div class="name">${esc(EXI[e.exId]?.name||e.exId)}</div><div class="muted num" style="font-size:14px">${e.sets.map(x=>(x.kg?x.kg+' kg × ':'')+x.reps+(EXI[e.exId]?.kind==='time'?' s':'')).join(' · ')}</div></div></div>`).join('')}</div>
+  <button class="btn primary block" data-a="tab" data-v="stats">Ver estadísticas</button></div>`;
+}
+
+/* ---------- Estadísticas ---------- */
+function weekStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()}
+function vStats(){
+  const H=S.history;
+  if(!H.length)return `<div class="stack"><h1>Estadísticas</h1><div class="empty stack" style="align-items:center">${I.stats}<h3>Aún no hay entrenos guardados</h3><p class="muted" style="margin:0">Cuando termines tu primera sesión verás aquí tu volumen, tu racha semanal, los músculos que más trabajas y tus récords.</p><button class="btn primary" data-a="tab" data-v="train">Empezar un entreno</button></div></div>`;
+  let vol=0,sets=0,time=0;H.forEach(r=>{const s=recStats(r);vol+=s.vol;sets+=s.sets;time+=r.duration});
+  // semanas
+  const W=8,now=weekStart(Date.now()),wk=Array(W).fill(0);
+  H.forEach(r=>{const i=Math.round((now-weekStart(r.date))/(7*864e5));if(i>=0&&i<W)wk[W-1-i]++});
+  let streak=0;{const set=new Set(H.map(r=>weekStart(r.date)));let w=now;if(!set.has(w))w-=7*864e5;while(set.has(w)){streak++;w-=7*864e5}}
+  const maxW=Math.max(3,...wk),cw=320,ch=150,pad=28,bw=(cw-pad)/W;
+  const bars=wk.map((v,i)=>{const h=(v/maxW)*(ch-40);const x=pad+i*bw+6,y=ch-22-h;const d=new Date(now-(W-1-i)*7*864e5);
+    return `<rect x="${x}" y="${y}" width="${bw-12}" height="${Math.max(h,0)}" rx="4" fill="${i===W-1?'var(--accent)':'var(--muted)'}" fill-opacity="${i===W-1?1:.45}"/>
+    ${v?`<text x="${x+(bw-12)/2}" y="${y-5}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${v}</text>`:''}
+    <text x="${x+(bw-12)/2}" y="${ch-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${d.getDate()}/${d.getMonth()+1}</text>`}).join('');
+  const grid=[0,Math.ceil(maxW/2),maxW].map(v=>{const y=ch-22-(v/maxW)*(ch-40);return `<line x1="${pad}" x2="${cw}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${pad-6}" y="${y+4}" text-anchor="end" font-size="10" fill="var(--muted)">${v}</text>`}).join('');
+  // músculos
+  const mc={};H.forEach(r=>r.exercises.forEach(e=>{const m=EXI[e.exId]?.mus[0];if(m)mc[m]=(mc[m]||0)+e.sets.length}));
+  const mlist=Object.entries(mc).sort((a,b)=>b[1]-a[1]);const mmax=mlist[0]?mlist[0][1]:1;
+  // récords (1RM estimado, Epley)
+  const pr={};H.forEach(r=>r.exercises.forEach(e=>{if(EXI[e.exId]?.kind==='time')return;e.sets.forEach(x=>{if(!x.kg)return;const est=x.kg*(1+x.reps/30);if(!pr[e.exId]||est>pr[e.exId].est)pr[e.exId]={est,kg:x.kg,reps:x.reps,date:r.date}})}));
+  const prl=Object.entries(pr).sort((a,b)=>b[1].est-a[1].est).slice(0,8);
+  return `<div class="stack"><h1>Estadísticas</h1>
+  <div class="kpis"><div class="kpi"><div class="v">${H.length}</div><div class="l">Entrenos</div></div><div class="kpi"><div class="v">${streak}<small>sem</small></div><div class="l">Racha semanal</div></div>
+  <div class="kpi"><div class="v">${vol>=1e4?(vol/1000).toLocaleString('es-ES',{maximumFractionDigits:1})+'<small>t</small>':fmtNum(vol)+'<small>kg</small>'}</div><div class="l">Volumen total</div></div><div class="kpi"><div class="v">${Math.round(time/60)}<small>min</small></div><div class="l">Tiempo entrenando · ${sets} series</div></div></div>
+  <section class="card chart"><h3>Entrenos por semana</h3><p class="muted" style="margin:2px 0 8px;font-size:13px">Últimas 8 semanas (lunes de cada semana)</p><svg viewBox="0 0 ${cw} ${ch}" role="img" aria-label="Entrenos por semana">${grid}${bars}</svg></section>
+  <section class="card stack" style="gap:10px"><h3>Series por músculo</h3>${mlist.map(([m,n])=>`<div class="hbar"><span>${MNAME[m]}</span><span class="track"><i style="width:${n/mmax*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</section>
+  ${prl.length?`<section class="card stack" style="gap:6px"><h3>Récords · 1RM estimado</h3><table class="ptable">${prl.map(([id,p])=>`<tr><td>${EXI[id].name}<div class="muted" style="font-size:12px">${p.kg} kg × ${p.reps} · ${fmtDate(p.date)}</div></td><td>${Math.round(p.est)} kg</td></tr>`).join('')}</table></section>`:''}
+  <section class="stack" style="gap:10px"><h3>Historial</h3><div class="list">${H.slice().reverse().map(r=>{const s=recStats(r);return `<div class="item"><div class="grow"><div class="name">${esc(r.name)}</div><div class="muted num" style="font-size:13px">${fmtDate(r.date)} · ${fmtTime(r.duration)} · ${s.sets} series · ${fmtNum(s.vol)} kg</div></div><button class="mini" data-a="del-rec" data-v="${r.id}" aria-label="Borrar entreno">${I.x}</button></div>`}).join('')}</div></section></div>`;
+}
+
+/* ---------- Herramientas ---------- */
+let toolTab='rm';
+const T={rmKg:80,rmReps:5,plTarget:100,plBar:20,bmiH:175,bmiW:75,iw:40,ir:20,irounds:8,itimer:null};
+function vTools(){
+  const tabs=[['rm','1RM'],['plates','Discos'],['interval','Intervalos'],['bmi','IMC'],['settings','Ajustes']];
+  let c='';
+  if(toolTab==='rm'){
+    const e=T.rmKg*(1+T.rmReps/30),b=T.rmReps<37?T.rmKg*36/(37-T.rmReps):0,avg=b?(e+b)/2:e;
+    c=`<div class="card stack"><h3>Calculadora de 1RM</h3><p class="muted" style="margin:0;font-size:14px">Estima tu máximo a una repetición a partir de una serie real.</p>
+    <div class="row"><div class="field"><label for="rmKg">Peso (kg)</label><input id="rmKg" inputmode="decimal" data-t="rmKg" value="${T.rmKg}"></div><div class="field"><label for="rmReps">Repeticiones</label><input id="rmReps" inputmode="numeric" data-t="rmReps" value="${T.rmReps}"></div></div>
+    <div><div class="eyebrow">1RM estimado</div><div class="big" data-out="rm">${Math.round(avg)} kg</div><div class="muted num" style="font-size:13px" data-out="rm2">Epley ${Math.round(e)} kg · Brzycki ${Math.round(b)} kg</div></div>
+    <table class="ptable" data-out="rmt">${rmTable(avg)}</table></div>`;
+  }else if(toolTab==='plates'){
+    c=`<div class="card stack"><h3>Calculadora de discos</h3><p class="muted" style="margin:0;font-size:14px">Qué discos poner en cada lado de la barra.</p>
+    <div class="row"><div class="field"><label for="plTarget">Peso total (kg)</label><input id="plTarget" inputmode="decimal" data-t="plTarget" value="${T.plTarget}"></div><div class="field"><label for="plBar">Barra (kg)</label><select id="plBar" data-t="plBar">${[20,15,10,7].map(v=>`<option ${v==T.plBar?'selected':''}>${v}</option>`).join('')}</select></div></div>
+    <div data-out="pl">${platesOut()}</div></div>`;
+  }else if(toolTab==='interval'){
+    c=`<div class="card stack"><h3>Temporizador de intervalos</h3><p class="muted" style="margin:0;font-size:14px">Trabajo y descanso alternos, con aviso sonoro. Úsalo para Tabata o circuitos.</p>
+    <div class="row"><div class="field"><label for="iw">Trabajo (s)</label><input id="iw" inputmode="numeric" data-t="iw" value="${T.iw}"></div><div class="field"><label for="ir">Descanso (s)</label><input id="ir" inputmode="numeric" data-t="ir" value="${T.ir}"></div><div class="field"><label for="irounds">Rondas</label><input id="irounds" inputmode="numeric" data-t="irounds" value="${T.irounds}"></div></div>
+    <div style="text-align:center;padding:10px 0"><div class="eyebrow" data-int-phase>Listo</div><div class="big" style="font-size:72px" data-int-time>${fmtTime(T.iw)}</div><div class="muted num" data-int-round>Ronda 0 de ${T.irounds}</div></div>
+    <div class="row"><button class="btn primary" style="flex:2" data-a="int-toggle">${T.itimer&&!T.itimer.paused?'Pausar':'Iniciar'}</button><button class="btn ghost" style="flex:1" data-a="int-reset">Reiniciar</button></div></div>`;
+  }else if(toolTab==='bmi'){
+    c=`<div class="card stack"><h3>Índice de masa corporal</h3>
+    <div class="row"><div class="field"><label for="bmiH">Altura (cm)</label><input id="bmiH" inputmode="numeric" data-t="bmiH" value="${T.bmiH}"></div><div class="field"><label for="bmiW">Peso (kg)</label><input id="bmiW" inputmode="decimal" data-t="bmiW" value="${T.bmiW}"></div></div>
+    <div data-out="bmi">${bmiOut()}</div><p class="muted" style="margin:0;font-size:13px">El IMC no distingue músculo de grasa: en personas que entrenan fuerza puede salir alto sin que haya exceso de grasa.</p></div>`;
+  }else{
+    c=`<div class="card stack"><h3>Ajustes</h3>
+    <div class="field"><label for="setRest">Descanso por defecto entre series</label><select id="setRest" data-a="rest-sel">${[30,45,60,90,120,150,180,240].map(v=>`<option value="${v}" ${v==S.settings.rest?'selected':''}>${fmtTime(v)}</option>`).join('')}</select></div>
+    <div class="field"><label>Tema</label><div class="seg">${[['','Sistema'],['light','Claro'],['dark','Oscuro']].map(([v,l])=>`<button data-a="set-theme" data-v="${v}" aria-pressed="${(S.settings.theme||'')===v}">${l}</button>`).join('')}</div></div></div>
+    <div class="card stack"><h3>Copia de seguridad</h3><p class="muted" style="margin:0;font-size:14px">Tus entrenos se guardan solo en este dispositivo. Copia el texto y guárdalo en Notas para no perderlos; pégalo aquí para restaurarlos.</p>
+    <button class="btn ghost" data-a="backup-copy">Copiar copia de seguridad</button>
+    <textarea id="importTxt" aria-label="Texto de copia de seguridad" placeholder="Pega aquí tu copia de seguridad"></textarea>
+    <button class="btn ghost" data-a="backup-import">Restaurar desde el texto</button>
+    <button class="btn danger" data-a="wipe">Borrar todo el historial</button></div>
+    <p class="muted" style="margin:0;font-size:12px">Fotos de ejercicios: free-exercise-db (github.com/yuhonas/free-exercise-db), dominio público. Los vídeos se buscan en YouTube.</p>`;
+  }
+  return `<div class="stack"><h1>Herramientas</h1><div class="seg" role="tablist">${tabs.map(([id,l])=>`<button role="tab" data-a="tool" data-v="${id}" aria-pressed="${toolTab===id}">${l}</button>`).join('')}</div>${c}</div>`;
+}
+function rmTable(rm){return [100,95,90,85,80,75,70,65,60].map(p=>`<tr><td>${p}% <span class="muted" style="font-size:12px">· ~${({100:1,95:2,90:4,85:6,80:8,75:10,70:12,65:15,60:18})[p]} reps</span></td><td>${(Math.round(rm*p/100*2)/2).toLocaleString('es-ES')} kg</td></tr>`).join('')}
+const PLATES=[[25,'#C92A2A',86],[20,'#1971C2',86],[15,'#E8A400',78],[10,'#2B8A3E',70],[5,'#495057',56],[2.5,'#868E96',46],[1.25,'#ADB5BD',38]];
+function platesOut(){
+  let side=(num(T.plTarget)-num(T.plBar))/2;
+  if(side<0)return `<p class="muted" style="margin:0">El peso total debe ser mayor que la barra.</p>`;
+  const out=[];for(const [w] of PLATES){while(side>=w-1e-9){out.push(w);side-=w}}
+  const rest=Math.round(side*100)/100;
+  return `<div class="plates" aria-hidden="true"><span class="barend"></span>${out.map(w=>{const p=PLATES.find(x=>x[0]===w);return `<span class="p" style="background:${p[1]};width:${w>=10?18:13}px;height:${p[2]}px">${w}</span>`}).join('')}<span class="barend" style="width:20px"></span></div>
+  <div><div class="eyebrow">Por cada lado</div><div style="font-size:20px;font-weight:700" class="num">${out.length?out.map(w=>w.toLocaleString('es-ES')).join(' + ')+' kg':'Sin discos'}</div>${rest?`<p class="muted" style="margin:4px 0 0;font-size:13px">Sobran ${rest.toLocaleString('es-ES')} kg por lado que no se pueden cargar con discos estándar.</p>`:''}</div>`;
+}
+function bmiOut(){const h=num(T.bmiH)/100,w=num(T.bmiW);if(!h||!w)return '';const b=w/(h*h);const cat=b<18.5?'Bajo peso':b<25?'Normal':b<30?'Sobrepeso':'Obesidad';
+  return `<div class="eyebrow">Tu IMC</div><div class="big">${b.toLocaleString('es-ES',{maximumFractionDigits:1})}</div><div style="font-weight:600">${cat}</div><p class="muted" style="margin:4px 0 0;font-size:13px">Rango normal para tu altura: ${Math.round(18.5*h*h)}–${Math.round(24.9*h*h)} kg.</p>`}
+
+/* ---------- Temporizadores ---------- */
+function tick(){
+  const s=S.active;
+  if(s){const el=fmtTime((Date.now()-s.start)/1000);document.querySelectorAll('[data-elapsed]').forEach(e=>e.textContent=el);
+    if(s.rest){const left=(s.rest.end-Date.now())/1000;
+      if(left<=0){s.rest=null;save();beep();if(view==='session')render();return}
+      const t=document.querySelector('[data-rest]');if(t)t.textContent=fmtTime(Math.ceil(left));
+      const f=document.querySelector('[data-rest-fill]');if(f)f.style.width=(100-left/s.rest.total*100)+'%';}}
+  const it=T.itimer;
+  if(it&&!it.paused){const left=(it.end-Date.now())/1000;
+    if(left<=0){beep();if(it.phase==='work'&&num(T.ir)>0&&it.round<num(T.irounds)){it.phase='rest';it.end=Date.now()+num(T.ir)*1000}
+      else if(it.round<num(T.irounds)){it.round++;it.phase='work';it.end=Date.now()+num(T.iw)*1000}
+      else{T.itimer=null;keepAwake(!!S.active);if(view==='tools')render();toast('Intervalos terminados');return}}
+    paintInterval();}
+}
+function paintInterval(){const it=T.itimer,p=document.querySelector('[data-int-phase]');if(!p)return;
+  if(!it){p.textContent='Listo';document.querySelector('[data-int-time]').textContent=fmtTime(num(T.iw));document.querySelector('[data-int-round]').textContent=`Ronda 0 de ${num(T.irounds)}`;return}
+  const left=it.paused?it.left:(it.end-Date.now())/1000;
+  p.textContent=it.paused?'En pausa':it.phase==='work'?'Trabajo':'Descanso';p.style.color=it.phase==='work'?'var(--accent)':'var(--ok)';
+  document.querySelector('[data-int-time]').textContent=fmtTime(Math.ceil(left));document.querySelector('[data-int-round]').textContent=`Ronda ${it.round} de ${num(T.irounds)}`;}
+setInterval(tick,250);
+
+/* ---------- Hoja para añadir ejercicios ---------- */
+function addSheet(mf0){
+  const eqSet=new Set(S.wiz.equip);let q='',mf=mf0||'';
+  const draw=()=>{const list=EX.filter(e=>canDo(e,eqSet)&&!S.wiz.list.includes(e.id)&&(!mf||e.mus.includes(mf))&&(!q||e.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').includes(q)));
+    $('#sheetList').innerHTML=list.length?`<div class="list">${list.map(e=>`<button class="item" style="border-left:0;border-right:0;border-bottom:0;background:none;text-align:left;width:100%" data-add="${e.id}">${demo(e.id,'thumb')}<div class="grow"><div class="name">${e.name}</div><div class="sub">${e.mus.slice(0,2).map((m,i)=>`<span class="tag ${i?'':'pri'}">${MNAME[m]}</span>`).join('')}<span class="tag">${eqLabel(e)}</span></div></div><span class="mini">${I.plus}</span></button>`).join('')}</div>`:`<p class="muted">No hay ejercicios que coincidan con tu equipo y la búsqueda.</p>`};
+  $('#layer').innerHTML=`<div class="overlay" data-a="close-layer"><div class="sheet" role="dialog" aria-modal="true" aria-label="Añadir ejercicio">
+    <div class="row between"><h2>Añadir ejercicio</h2><button class="mini" data-a="close-layer" aria-label="Cerrar">${I.x}</button></div>
+    <input class="search" id="sheetQ" placeholder="Buscar ejercicio" style="margin-top:12px" autocomplete="off">
+    <div class="chips" style="margin-top:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px" id="sheetM">${[['','Todos'],...MUSCLES.map(m=>[m.id,m.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:6px 12px;font-size:14px" data-m="${id}" aria-pressed="${id===mf}">${n}</button>`).join('')}</div>
+    <div class="scroll" id="sheetList"></div></div></div>`;
+  draw();
+  $('#sheetQ').oninput=e=>{q=e.target.value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');draw()};
+  $('#sheetM').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;mf=b.dataset.m;$('#sheetM').querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()};
+  $('#sheetList').onclick=e=>{const b=e.target.closest('[data-add]');if(!b)return;S.wiz.list.push(b.dataset.add);save();render();draw();toast('Añadido: '+EXI[b.dataset.add].name)};
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b||b.tagName==='SELECT')return;
+  const a=b.dataset.a,v=b.dataset.v,w=S.wiz,s=S.active;
+  switch(a){
+    case 'close-layer':if(e.target===b||b.tagName==='BUTTON')closeLayer();return;
+    case 'theme':S.settings.theme=isDark()?'light':'dark';applyTheme();save();render();return;
+    case 'set-theme':S.settings.theme=v||null;applyTheme();save();render();return;
+    case 'tab':view=v;render();window.scrollTo(0,0);return;
+    case 'resume':view='session';render();window.scrollTo(0,0);return;
+    case 'goto-step':w.step=+v;break;
+    case 'eq':w.equip=w.equip.includes(v)?w.equip.filter(x=>x!==v):[...w.equip,v];{const es=new Set(w.equip);w.muscles=w.muscles.filter(m=>EX.some(x=>canDo(x,es)&&x.mus.includes(m)))}break;
+    case 'mu':w.muscles=w.muscles.includes(v)?w.muscles.filter(x=>x!==v):[...w.muscles,v];break;
+    case 'mu-preset':{const es=new Set(w.equip);w.muscles=v.split(',').filter(m=>EX.some(x=>canDo(x,es)&&x.mus.includes(m)))}break;
+    case 'next':w.step=Math.min(3,w.step+1);window.scrollTo(0,0);break;
+    case 'prev':w.step=Math.max(1,w.step-1);window.scrollTo(0,0);break;
+    case 'regen':genList();break;
+    case 'rm':w.list=w.list.filter(x=>x!==v);break;
+    case 'swap':{const es=new Set(w.equip),m=pickGroup(v);const opts=EX.filter(x=>canDo(x,es)&&x.mus.includes(m)&&!w.list.includes(x.id));
+      if(!opts.length){toast('No hay más ejercicios para '+MNAME[m]+' con tu equipo');return}
+      const pri=opts.filter(x=>x.mus[0]===m),pool=pri.length?pri:opts;w.list[w.list.indexOf(v)]=pool[Math.floor(Math.random()*pool.length)].id}break;
+    case 'add-sheet':addSheet(v);return;
+    case 'per':w.per=+v;break;
+    case 'info':infoSheet(v);return;
+    case 'start-custom':startSession(w.muscles.map(m=>MNAME[m]).slice(0,3).join(' · ')+(w.muscles.length>3?' …':''),w.list.map(id=>({exId:id,sets:3})));return;
+    case 'start-prog':{const [pid,di]=v.split(':');const p=PROGRAMS.find(x=>x.id===pid),d=p.days[+di];startSession(p.name.split(' · ')[0]+' · '+d.n,d.x.map(([id,n,t])=>({exId:id,sets:n,target:t})))}return;
+    case 'goto-ex':s.idx=+v;break;
+    case 'ex-prev':s.idx=Math.max(0,s.idx-1);break;
+    case 'ex-next':s.idx=Math.min(s.exercises.length-1,s.idx+1);break;
+    case 'add-set':{const c=s.exercises[s.idx],l=c.sets[c.sets.length-1];c.sets.push({kg:l?l.kg:'',reps:'',done:false})}break;
+    case 'rm-set':s.exercises[s.idx].sets.pop();break;
+    case 'done':{unlockAudio();const c=s.exercises[s.idx],st=c.sets[+v];st.done=!st.done;
+      if(st.done){const row=b.closest('tr');const kgI=row.querySelector('[data-f="kg"]'),rpI=row.querySelector('[data-f="reps"]');
+        if(st.kg==='')st.kg=kgI.placeholder==='0'?'':kgI.placeholder;if(st.reps==='')st.reps=rpI.placeholder;
+        if(c.sets.slice(+v+1).length&&+v+1<c.sets.length&&c.sets[+v+1].kg==='')c.sets[+v+1].kg=st.kg;
+        const allDone=s.exercises.every(x=>x.sets.every(y=>y.done));
+        if(!allDone)s.rest={end:Date.now()+S.settings.rest*1000,total:S.settings.rest};
+        if(c.sets.every(y=>y.done)&&s.idx<s.exercises.length-1)setTimeout(()=>{if(S.active===s&&s.exercises[s.idx]===c){s.idx++;save();render()}},700);
+      }}break;
+    case 'rest-add':if(s.rest){s.rest.end+= +v*1000;s.rest.total=Math.max(s.rest.total+ +v,1)}break;
+    case 'rest-skip':s.rest=null;break;
+    case 'leave':view='train';break;
+    case 'finish':{const n=s.exercises.reduce((a,e)=>a+e.sets.filter(x=>x.done).length,0);
+      confirmBox('¿Terminar entreno?',n?`Se guardarán ${n} series completadas.`:'No has completado ninguna serie; el entreno se descartará.',n?'Terminar y guardar':'Descartar',finishSession,!n)}return;
+    case 'del-rec':confirmBox('¿Borrar este entreno?','Se eliminará del historial y de las estadísticas.','Borrar',()=>{S.history=S.history.filter(r=>r.id!==v);save();render()});return;
+    case 'tool':toolTab=v;break;
+    case 'int-toggle':{unlockAudio();const it=T.itimer;
+      if(!it){T.itimer={phase:'work',round:1,end:Date.now()+num(T.iw)*1000,paused:false};keepAwake(true)}
+      else if(it.paused){it.paused=false;it.end=Date.now()+it.left*1000}else{it.paused=true;it.left=(it.end-Date.now())/1000}}break;
+    case 'int-reset':T.itimer=null;break;
+    case 'backup-copy':{const txt=JSON.stringify({app:'forja',v:1,settings:S.settings,history:S.history});
+      navigator.clipboard.writeText(txt).then(()=>toast('Copia copiada. Pégala en Notas.'),()=>{const ta=$('#importTxt');ta.value=txt;ta.select();toast('Selecciona y copia el texto del cuadro')})}return;
+    case 'backup-import':{try{const d=JSON.parse($('#importTxt').value);if(!Array.isArray(d.history))throw 0;
+      const clean=d.history.filter(r=>r&&r.id&&r.date&&Array.isArray(r.exercises)).map(r=>({id:String(r.id),name:String(r.name||'Entreno'),date:+r.date,duration:+r.duration||0,exercises:r.exercises.filter(e=>EXI[e.exId]).map(e=>({exId:e.exId,sets:(e.sets||[]).map(x=>({kg:num(x.kg),reps:num(x.reps)}))}))}));
+      confirmBox('¿Restaurar copia?',`Se cargarán ${clean.length} entrenos y se reemplazará el historial actual.`,'Restaurar',()=>{S.history=clean.sort((a,b)=>a.date-b.date);save();render();toast('Copia restaurada')},false)}
+      catch(err){toast('El texto no es una copia de seguridad válida de Forja')}}return;
+    case 'wipe':confirmBox('¿Borrar todo el historial?','Se eliminarán todos tus entrenos guardados. No se puede deshacer.','Borrar todo',()=>{S.history=[];save();render();toast('Historial borrado')});return;
+    default:return;
+  }
+  save();render();
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.set!==undefined&&S.active){const c=S.active.exercises[S.active.idx];c.sets[+t.dataset.set][t.dataset.f]=t.value.replace(/[^0-9.,]/g,'');save();return}
+  if(t.dataset.t){T[t.dataset.t]=t.value;
+    if(toolTab==='rm'){const k=num(T.rmKg),r=Math.max(1,num(T.rmReps));const ep=k*(1+r/30),bz=r<37?k*36/(37-r):0,avg=bz?(ep+bz)/2:ep;
+      $('[data-out="rm"]').textContent=Math.round(avg)+' kg';$('[data-out="rm2"]').textContent=`Epley ${Math.round(ep)} kg · Brzycki ${Math.round(bz)} kg`;$('[data-out="rmt"]').innerHTML=rmTable(avg)}
+    if(toolTab==='plates')$('[data-out="pl"]').innerHTML=platesOut();
+    if(toolTab==='bmi')$('[data-out="bmi"]').innerHTML=bmiOut();
+    if(toolTab==='interval'&&!T.itimer)paintInterval();}
+});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.dataset.a==='rest-sel'){S.settings.rest=+t.value;save();toast('Descanso: '+fmtTime(S.settings.rest))}
+  if(t.dataset.t){T[t.dataset.t]=t.value;if(toolTab==='plates')$('[data-out="pl"]').innerHTML=platesOut()}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&(S.active||T.itimer)){wake=null;keepAwake(true)}});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!S.settings.theme)render()});
+
+render();
+</script>
+<script>
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>
