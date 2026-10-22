@@ -991,7 +991,10 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!
 const FORJA_CONFIG={url:'https://qxapuoemkpwizleenbar.supabase.co',key:'sb_publishable_Ub9czsb2WtuZoyshIi5_jg_Xec33JOo'};
 const APP_URL='https://marthe79.github.io/forja/';
 const sb=(window.supabase&&FORJA_CONFIG.url&&FORJA_CONFIG.key)?window.supabase.createClient(FORJA_CONFIG.url,FORJA_CONFIG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'forja.auth'}}):null;
-const A={status:'loading',user:null,profile:null,mode:'login',email:'',offline:false,needPass:false,resendAt:0};
+// El proyecto lo comparten varias apps: cada una da de alta a sus usuarios por separado.
+const APP_ID='forja';
+const otp=email=>sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,data:{app:APP_ID}}});
+const A={status:'loading',user:null,profile:null,mode:'login',email:'',offline:false,needPass:false,resendAt:0,other:false,joinedFrom:''};
 const F={friends:[],inbox:[],results:null,q:'',friend:null};
 const ADM={stats:null,users:null,q:''};
 const SEX={hombre:'Hombre',mujer:'Mujer',otro:'Otro',prefiero_no_decir:'Prefiero no decirlo'};
@@ -1046,8 +1049,12 @@ async function onSession(session){
   if(canSync()){syncAll();refreshSocial()}
 }
 async function loadProfile(){
-  try{const {data,error}=await sb.from('profiles').select('*').eq('id',A.user.id).maybeSingle();
+  try{let {data,error}=await sb.from('profiles').select('*').eq('id',A.user.id).maybeSingle();
     if(error)throw error;
+    if(!data){ // tiene cuenta en otra de nuestras apps: se da de alta también en Forja
+      const {data:j,error:e2}=await sb.rpc('join_app',{p_app:APP_ID});if(e2)throw e2;
+      if(j?.joined&&j.others?.length)A.joinedFrom=j.others.join(' y ');
+      ({data,error}=await sb.from('profiles').select('*').eq('id',A.user.id).maybeSingle());if(error)throw error}
     A.offline=false;
     if(data){A.profile=data;S.profile=data;save();sb.from('profiles').update({last_seen:new Date().toISOString()}).eq('id',A.user.id).then(()=>{},()=>{})}
   }catch(e){A.offline=true}
@@ -1070,6 +1077,10 @@ function vNoServer(){return `<div class="auth">${authHead('Falta conectar el ser
 function vOffline(){return `<div class="auth">${authHead('Sin conexión','Para entrar la primera vez en este dispositivo necesitas internet. Conéctate y vuelve a intentarlo.')}<button class="btn primary block" data-a="auth-retry">Reintentar</button><button class="linkbtn" data-a="logout">Cerrar sesión</button></div>`}
 function vBlocked(){return `<div class="auth">${authHead('Cuenta bloqueada','El administrador ha desactivado esta cuenta. Si crees que es un error, ponte en contacto con quien te invitó a Forja.')}<button class="btn ghost block" data-a="logout">Cerrar sesión</button></div>`}
 function vAuth(){
+  if(A.mode==='code-other')return `<div class="auth">${authHead('Ya tienes cuenta','Este correo ya está registrado en otra de nuestras apps. Entra con el mismo correo y la contraseña que usaste allí.')}
+    <button class="btn primary block" data-a="auth-mode" data-v="login">Entrar con mi contraseña</button>
+    <div class="card stack" style="gap:6px"><b>¿No recuerdas la contraseña?</b><span class="muted">Te enviamos un código para elegir una nueva. Servirá para las dos apps.</span>
+      <button class="btn ghost block" data-a="code-anyway">He olvidado mi contraseña</button></div></div>`;
   if(A.mode==='code-email')return `<div class="auth">${authHead('Crear cuenta o recuperar contraseña','Escribe tu correo y te enviaremos un código de 6 dígitos. Con él eliges tu contraseña. Sirve tanto si es tu primera vez como si la has olvidado.')}
     <form data-form="send-code" class="stack" novalidate>
       <div class="field"><label for="ceEmail">Correo electrónico</label><input id="ceEmail" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" required value="${esc(A.email)}"></div>
@@ -1088,14 +1099,14 @@ function vAuth(){
     <div class="card stack" style="gap:6px"><b>¿Es tu primera vez o no recuerdas la contraseña?</b>
       <button class="btn ghost block" data-a="auth-mode" data-v="code-email">Crear cuenta o he olvidado mi contraseña</button></div></div>`;
 }
-function vSetPassword(){return `<div class="auth">${authHead('Elige tu contraseña','Usa al menos 8 caracteres. La necesitarás para entrar la próxima vez.')}
+function vSetPassword(){return `<div class="auth">${authHead('Elige tu contraseña','Usa al menos 8 caracteres. La necesitarás para entrar la próxima vez.'+(A.other?' También la usarás en la otra app en la que tienes cuenta.':''))}
   <form data-form="set-password" class="stack" novalidate>
     <input type="email" name="username" autocomplete="username" value="${esc(A.user?.email||'')}" hidden>
     <div class="field"><label for="spPass">Contraseña nueva</label><input id="spPass" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
     <div class="field"><label for="spPass2">Repite la contraseña</label><input id="spPass2" name="password2" type="password" autocomplete="new-password" minlength="8" required></div>
     <p class="err"></p><button class="btn primary block">Guardar contraseña</button></form>${onboarded(A.profile)?'<button class="btn ghost block" data-a="pass-cancel">Cancelar</button>':'<button class="linkbtn" data-a="logout">Cerrar sesión</button>'}</div>`}
 function vProfileForm(edit){const p=A.profile||{};
-  return `${edit?'':p.full_name?authHead('Unas preguntas nuevas','Para adaptar Forja a ti necesitamos saber un poco más sobre cómo entrenas. Solo será un momento.'):authHead('Cuéntanos sobre ti','Solo te lo preguntamos esta vez. Podrás cambiarlo cuando quieras desde tu perfil.')}
+  return `${edit?'':p.full_name?authHead('Unas preguntas nuevas','Para adaptar Forja a ti necesitamos saber un poco más sobre cómo entrenas. Solo será un momento.'):authHead('Cuéntanos sobre ti',(A.joinedFrom?`Ya tenías cuenta en ${esc(A.joinedFrom)}. Te hemos dado acceso también a Forja con el mismo correo y contraseña. `:'')+'Solo te lo preguntamos esta vez. Podrás cambiarlo cuando quieras desde tu perfil.')}
   <form data-form="profile" data-edit="${edit?1:''}" class="stack" novalidate>
     <div class="field"><label for="pfName">Nombre y apellidos</label><input id="pfName" name="full_name" autocomplete="name" required value="${esc(p.full_name||'')}"></div>
     <div class="field"><label for="pfNick">Nick (así te verán tus amigos)</label><input id="pfNick" name="nickname" autocapitalize="none" autocomplete="off" maxlength="20" required value="${esc(p.nickname||'')}" placeholder="por ejemplo, marco_fit"></div>
@@ -1252,8 +1263,12 @@ document.addEventListener('submit',async e=>{
     }else if(kind==='send-code'){
       const email=(fd.email||'').trim().toLowerCase();A.email=email;
       if(!/^\S+@\S+\.\S+$/.test(email))return setErr(f,'Escribe un correo válido, por ejemplo nombre@gmail.com.');
-      busy(f,true);const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});busy(f,false);
-      if(error)return setErr(f,errMsg(error));A.resendAt=Date.now()+60000;A.mode='code-verify';render();setTimeout(()=>$('#cvCode')?.focus(),50);
+      busy(f,true);
+      // ¿Ya tiene cuenta en otra de nuestras apps? Entonces entra con esa contraseña
+      const {data:st}=await sb.rpc('account_status',{p_email:email,p_app:APP_ID});
+      if(st==='other'){busy(f,false);A.mode='code-other';render();return}
+      const {error}=await otp(email);busy(f,false);
+      if(error)return setErr(f,errMsg(error));A.other=false;A.resendAt=Date.now()+60000;A.mode='code-verify';render();setTimeout(()=>$('#cvCode')?.focus(),50);
     }else if(kind==='verify-code'){
       const token=(fd.code||'').replace(/\D/g,'');if(token.length<6)return setErr(f,'Escribe el código que te ha llegado por correo.');
       busy(f,true);const {data,error}=await sb.auth.verifyOtp({email:A.email,token,type:'email'});busy(f,false);
@@ -1296,7 +1311,8 @@ document.addEventListener('click',async e=>{
     case 'auth-mode':A.mode=v;render();break;
     case 'auth-retry':A.offline=false;render();await loadProfile();render();break;
     case 'resend-code':{const left=Math.ceil((A.resendAt-Date.now())/1000);if(left>0)return toast(`Espera ${left} s para pedir otro código`);
-      const {error}=await sb.auth.signInWithOtp({email:A.email,options:{shouldCreateUser:true}});if(error)return toast(errMsg(error));A.resendAt=Date.now()+60000;toast('Te hemos enviado otro código');break}
+      const {error}=await otp(A.email);if(error)return toast(errMsg(error));A.resendAt=Date.now()+60000;toast('Te hemos enviado otro código');break}
+    case 'code-anyway':{const {error}=await otp(A.email);if(error)return toast(errMsg(error));A.other=true;A.resendAt=Date.now()+60000;A.mode='code-verify';render();setTimeout(()=>$('#cvCode')?.focus(),50);break}
     case 'logout':confirmBox('¿Cerrar sesión?','Tus entrenos están guardados en tu cuenta. Podrás volver a entrar con tu correo y contraseña.','Cerrar sesión',logout,false);break;
     case 'pass-cancel':try{localStorage.removeItem('forja.needpass')}catch(x){}A.needPass=false;render();break;
     case 'auth-change-pass':try{localStorage.setItem('forja.needpass',A.user.id)}catch(x){}A.needPass=true;render();window.scrollTo(0,0);break;
@@ -1315,7 +1331,7 @@ document.addEventListener('click',async e=>{
     case 'adm-block':{const u=ADM.users.find(x=>x.id===v);if(!u)return;
       confirmBox(u.blocked?'¿Desbloquear esta cuenta?':'¿Bloquear esta cuenta?',u.blocked?`${u.email} podrá volver a usar Forja.`:`${u.email} no podrá usar Forja hasta que la desbloquees. Sus datos se conservan.`,u.blocked?'Desbloquear':'Bloquear',async()=>{const {error}=await sb.from('profiles').update({blocked:!u.blocked}).eq('id',v);if(error)return toast(errMsg(error));toast(u.blocked?'Cuenta desbloqueada':'Cuenta bloqueada');loadAdmin()},!u.blocked);break}
     case 'adm-delete':{const u=ADM.users.find(x=>x.id===v);if(!u)return;
-      confirmBox('¿Borrar esta cuenta?',`Se borrarán para siempre la cuenta de ${u.email}, su perfil, sus entrenos y sus amistades. No se puede deshacer.`,'Borrar para siempre',async()=>{const {error}=await sb.rpc('admin_delete_user',{uid:v});if(error)return toast(errMsg(error));toast('Cuenta borrada');loadAdmin()});break}
+      confirmBox('¿Borrar esta cuenta?',`Se borrarán para siempre de Forja la cuenta de ${u.email}, su perfil, sus entrenos y sus amistades. No se puede deshacer. Si usa otra de nuestras apps, allí conserva su cuenta.`,'Borrar para siempre',async()=>{const {error}=await sb.rpc('admin_delete_user',{uid:v});if(error)return toast(errMsg(error));toast('Cuenta borrada');loadAdmin()});break}
   }}catch(err){toast(errMsg(err))}
 });
 document.addEventListener('input',e=>{if(e.target.matches('[data-adm-q]')){ADM.q=e.target.value;const pos=e.target.selectionStart;render();const i=$('#admQ');if(i){i.focus();try{i.setSelectionRange(pos,pos)}catch(x){}}}});
