@@ -212,6 +212,12 @@ textarea{height:90px;padding:10px 12px;font-size:13px;font-family:ui-monospace,M
 .overlay{position:fixed;inset:0;z-index:60;background:rgba(10,12,15,.5);display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;max-height:86%;display:flex;flex-direction:column;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .sheet .scroll{overflow-y:auto;margin-top:12px;-webkit-overflow-scrolling:touch}
+.sheet>*{flex-shrink:0}
+.sheet>.scroll{flex:1 1 auto;min-height:0}
+.chiprow{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow .chip{flex:none;padding:6px 12px;font-size:14px;white-space:nowrap}
+.filt-l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
 .dialog{align-items:center;padding:16px}
 .dialog .box{background:var(--surface);border-radius:16px;padding:20px;max-width:360px;width:100%}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:80;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:90%}
@@ -934,7 +940,7 @@ function addSheet(mf0){
   $('#layer').innerHTML=`<div class="overlay" data-a="close-layer"><div class="sheet" role="dialog" aria-modal="true" aria-label="Añadir ejercicio">
     <div class="row between"><h2>Añadir ejercicio</h2><button class="mini" data-a="close-layer" aria-label="Cerrar">${I.x}</button></div>
     <input class="search" id="sheetQ" placeholder="Buscar ejercicio" style="margin-top:12px" autocomplete="off">
-    <div class="chips" style="margin-top:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px" id="sheetM">${[['','Todos'],...MUSCLES.map(m=>[m.id,m.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:6px 12px;font-size:14px" data-m="${id}" aria-pressed="${id===mf}">${n}</button>`).join('')}</div>
+    <div class="filt-l">Músculo</div><div class="chiprow" id="sheetM">${[['','Todos'],...MUSCLES.map(m=>[m.id,m.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:6px 12px;font-size:14px" data-m="${id}" aria-pressed="${id===mf}">${n}</button>`).join('')}</div>
     <div class="scroll" id="sheetList"></div></div></div>`;
   draw();
   $('#sheetQ').oninput=e=>{q=e.target.value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');draw()};
@@ -1493,8 +1499,8 @@ function pdAddSheet(){
   $('#layer').innerHTML=`<div class="overlay" data-a="close-layer"><div class="sheet" role="dialog" aria-modal="true" aria-label="Añadir ejercicio">
     <div class="row between"><h2>Añadir a ${DAYS[PD.day].toLowerCase()}</h2><button class="mini" data-a="close-layer" aria-label="Cerrar">${I.x}</button></div>
     <input class="search" id="pdQ" placeholder="Buscar ejercicio" style="margin-top:12px" autocomplete="off">
-    <div class="chips" style="margin-top:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px" id="pdM">${[...(PD.muscles.length?[['__day','Músculos del día']]:[]),['','Todos'],...MUSCLES.map(m=>[m.id,m.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:6px 12px;font-size:14px" data-m="${id}" aria-pressed="${id===mf}">${n}</button>`).join('')}</div>
-    <div class="chips" style="margin-top:6px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px" id="pdE">${[['','Todo el equipo'],...EQUIP.map(q=>[q.id,q.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:5px 11px;font-size:13px" data-e="${id}" aria-pressed="${id===eqf}">${n}</button>`).join('')}</div>
+    <div class="filt-l">Músculo</div><div class="chiprow" id="pdM">${[...(PD.muscles.length?[['__day','Músculos del día']]:[]),['','Todos'],...MUSCLES.map(m=>[m.id,m.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:6px 12px;font-size:14px" data-m="${id}" aria-pressed="${id===mf}">${n}</button>`).join('')}</div>
+    <div class="filt-l">Equipo</div><div class="chiprow" id="pdE">${[['','Todo el equipo'],...EQUIP.map(q=>[q.id,q.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:5px 11px;font-size:13px" data-e="${id}" aria-pressed="${id===eqf}">${n}</button>`).join('')}</div>
     <div class="scroll" id="pdList"></div></div></div>`;
   draw();
   $('#pdQ').oninput=e=>{q=e.target.value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');draw()};
