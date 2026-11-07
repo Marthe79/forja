@@ -832,16 +832,21 @@ function vStats(){
 
 /* ---------- Herramientas ---------- */
 let toolTab=null;
-const T={rmKg:80,rmReps:5,plTarget:100,plBar:20,bmiH:175,bmiW:75,iw:40,ir:20,irounds:8,itimer:null};
+const T={rmEx:'',rmSrc:'',rmKg:80,rmReps:5,plTarget:100,plBar:20,bmiH:175,bmiW:75,iw:40,ir:20,irounds:8,itimer:null};
 function vTools(){
   if(!toolTab)return vToolsList();
   let c='';
   if(toolTab==='rm'){
-    const e=T.rmKg*(1+T.rmReps/30),b=T.rmReps<37?T.rmKg*36/(37-T.rmReps):0,avg=b?(e+b)/2:e;
-    c=`<div class="card stack"><h3>Calculadora de 1RM</h3><p class="muted" style="margin:0;font-size:14px">Estima tu máximo a una repetición a partir de una serie real.</p>
-    <div class="row"><div class="field"><label for="rmKg">Peso (kg)</label><input id="rmKg" inputmode="decimal" data-t="rmKg" value="${T.rmKg}"></div><div class="field"><label for="rmReps">Repeticiones</label><input id="rmReps" inputmode="numeric" data-t="rmReps" value="${T.rmReps}"></div></div>
-    <div><div class="eyebrow">1RM estimado</div><div class="big" data-out="rm">${Math.round(avg)} kg</div><div class="muted num" style="font-size:13px" data-out="rm2">Epley ${Math.round(e)} kg · Brzycki ${Math.round(b)} kg</div></div>
-    <table class="ptable" data-out="rmt">${rmTable(avg)}</table></div>`;
+    const avg=rmCalc(num(T.rmKg),num(T.rmReps)),ex=EXI[T.rmEx],{mine,rest}=rmOptions(),hasH=ex&&exHist(ex.id).length;
+    c=`<div class="card stack">
+    <div class="field"><label for="rmEx" class="eyebrow">1. Elige el ejercicio</label><select id="rmEx" data-rm-ex><option value="">Sin elegir (solo calcular)</option>
+      ${mine.length?`<optgroup label="Ejercicios que ya has hecho">${mine.map(e=>`<option value="${e.id}" ${e.id===T.rmEx?'selected':''}>${e.name}</option>`).join('')}</optgroup>`:''}
+      <optgroup label="Todos los ejercicios con peso">${rest.map(e=>`<option value="${e.id}" ${e.id===T.rmEx?'selected':''}>${e.name}</option>`).join('')}</optgroup></select></div>
+    ${ex?`<div class="row">${demo(ex.id,'thumb')}<p class="muted" style="margin:0;font-size:14px">${T.rmSrc}</p></div>`:''}
+    <div><label class="eyebrow" style="display:block;margin-bottom:6px">2. Una serie que hayas hecho de verdad</label><div class="row"><div class="field"><label for="rmKg">Peso (kg)</label><input id="rmKg" inputmode="decimal" data-t="rmKg" value="${T.rmKg}"></div><div class="field"><label for="rmReps">Repeticiones</label><input id="rmReps" inputmode="numeric" data-t="rmReps" value="${T.rmReps}"></div></div></div>
+    <div><div class="eyebrow">${ex?'Tu máximo estimado en '+ex.name:'Tu máximo estimado (1RM)'}</div><div class="big" data-out="rm">${Math.round(avg)} kg</div><p class="err" data-out="rm2" style="font-size:13px">${rmWarn(num(T.rmReps))}</p></div>
+    <div><div class="eyebrow" style="margin-bottom:4px">3. Qué peso usar según las repeticiones que quieras hacer</div><table class="ptable" data-out="rmt">${rmTable(avg)}</table></div>
+    ${hasH?`<button class="btn ghost block" data-a="prog-ex" data-v="${ex.id}">${I.stats} Ver mi progreso en este ejercicio</button>`:''}</div>`;
   }else if(toolTab==='plates'){
     c=`<div class="card stack"><h3>Calculadora de discos</h3><p class="muted" style="margin:0;font-size:14px">Qué discos poner en cada lado de la barra.</p>
     <div class="row"><div class="field"><label for="plTarget">Peso total (kg)</label><input id="plTarget" inputmode="decimal" data-t="plTarget" value="${T.plTarget}"></div><div class="field"><label for="plBar">Barra (kg)</label><select id="plBar" data-t="plBar">${[20,15,10,7].map(v=>`<option ${v==T.plBar?'selected':''}>${v}</option>`).join('')}</select></div></div>
@@ -869,6 +874,22 @@ function vTools(){
   }
   const t=TOOLS.find(x=>x[0]===toolTab);
   return `<div class="stack"><div class="row"><button class="mini" data-a="tool" data-v="" aria-label="Volver a Herramientas">${I.left}</button><h1>${t[1]}</h1></div><div class="notice"><b>Cómo se usa:</b> ${t[3]}</div>${c}</div>`;
+}
+function rmCalc(k,r){r=Math.max(1,r);const ep=k*(1+r/30),bz=r<37?k*36/(37-r):0;return bz?(ep+bz)/2:ep}
+const rmWarn=r=>r>10?'Con más de 10 repeticiones la estimación es menos precisa. Para afinarla, usa una serie de entre 3 y 10 repeticiones.':'';
+function rmOptions(){
+  const ok=e=>e.kind==='reps'&&!(e.eq.length===1&&e.eq[0]==='bw');
+  const seen=[...new Set(S.history.slice().reverse().flatMap(r=>r.exercises.filter(x=>x.sets.some(y=>y.kg>0)).map(x=>x.exId)))].map(id=>EXI[id]).filter(e=>e&&e.kind==='reps');
+  const ids=new Set(seen.map(e=>e.id));
+  return {mine:seen,rest:EX.filter(e=>ok(e)&&!ids.has(e.id)).sort((a,b)=>a.name.localeCompare(b.name,'es'))};
+}
+function rmFill(exId){
+  T.rmEx=exId||'';T.rmSrc='';if(!exId)return;
+  const h=exHist(exId).slice(-3),sets=h.flatMap(x=>x.sets.filter(y=>y.kg>0).map(y=>({...y,date:x.date})));
+  if(!sets.length){T.rmSrc='Aún no tienes series con peso en este ejercicio. Escribe una serie que hayas hecho y te calculo el resto.';return}
+  const pool=sets.some(y=>y.reps<=10)?sets.filter(y=>y.reps<=10):sets;
+  const best=pool.reduce((b,y)=>rmCalc(y.kg,y.reps)>rmCalc(b.kg,b.reps)?y:b,pool[0]);
+  T.rmKg=best.kg;T.rmReps=best.reps;T.rmSrc=`Relleno con tu mejor serie reciente: <b>${best.kg.toLocaleString('es-ES')} kg × ${best.reps}</b> (${fmtDate(best.date)}). Puedes cambiar los números.`;
 }
 function rmTable(rm){return [100,95,90,85,80,75,70,65,60].map(p=>`<tr><td>${p}% <span class="muted" style="font-size:12px">· ~${({100:1,95:2,90:4,85:6,80:8,75:10,70:12,65:15,60:18})[p]} reps</span></td><td>${(Math.round(rm*p/100*2)/2).toLocaleString('es-ES')} kg</td></tr>`).join('')}
 const PLATES=[[25,'#C92A2A',86],[20,'#1971C2',86],[15,'#E8A400',78],[10,'#2B8A3E',70],[5,'#495057',56],[2.5,'#868E96',46],[1.25,'#ADB5BD',38]];
@@ -986,13 +1007,14 @@ document.addEventListener('input',e=>{
   const t=e.target;
   if(t.dataset.set!==undefined&&S.active){const c=S.active.exercises[S.active.idx];c.sets[+t.dataset.set][t.dataset.f]=t.value.replace(/[^0-9.,]/g,'');save();return}
   if(t.dataset.t){T[t.dataset.t]=t.value;
-    if(toolTab==='rm'){const k=num(T.rmKg),r=Math.max(1,num(T.rmReps));const ep=k*(1+r/30),bz=r<37?k*36/(37-r):0,avg=bz?(ep+bz)/2:ep;
-      $('[data-out="rm"]').textContent=Math.round(avg)+' kg';$('[data-out="rm2"]').textContent=`Epley ${Math.round(ep)} kg · Brzycki ${Math.round(bz)} kg`;$('[data-out="rmt"]').innerHTML=rmTable(avg)}
+    if(toolTab==='rm'){const r=Math.max(1,num(T.rmReps)),avg=rmCalc(num(T.rmKg),r);
+      $('[data-out="rm"]').textContent=Math.round(avg)+' kg';$('[data-out="rm2"]').textContent=rmWarn(r);$('[data-out="rmt"]').innerHTML=rmTable(avg)}
     if(toolTab==='plates')$('[data-out="pl"]').innerHTML=platesOut();
     if(toolTab==='bmi')$('[data-out="bmi"]').innerHTML=bmiOut();
     if(toolTab==='interval'&&!T.itimer)paintInterval();}
 });
 document.addEventListener('change',e=>{const t=e.target;
+  if(t.matches('[data-rm-ex]')){rmFill(t.value);render();return}
   if(t.dataset.a==='rest-sel'){S.settings.rest=+t.value;save();toast('Descanso: '+fmtTime(S.settings.rest))}
   if(t.dataset.t){T[t.dataset.t]=t.value;if(toolTab==='plates')$('[data-out="pl"]').innerHTML=platesOut()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&(S.active||T.itimer)){wake=null;keepAwake(true)}});
@@ -1383,6 +1405,7 @@ function progressSheet(exId){
       <div class="kpi"><div class="v" style="font-size:24px">${val(best).toLocaleString('es-ES')}<small>${unit}</small></div><div class="l">Tu mejor marca · ${fmtDate(best.date)}</div></div>
       ${useKg?`<div class="kpi"><div class="v" style="font-size:24px">${Math.round(Math.max(...h.map(x=>x.e1)))}<small>kg</small></div><div class="l">Máximo estimado a 1 repetición</div></div>`:''}
       <div class="kpi"><div class="v" style="font-size:24px">${h.length}</div><div class="l">Sesiones · ${h.length>1?(diff>0?'+':'')+diff.toLocaleString('es-ES')+' '+unit+' desde la primera':'primera sesión'}</div></div></div>
+      ${useKg&&e.kind==='reps'?`<button class="btn ghost block" data-a="rm-from" data-v="${exId}">${I.tools} Calcular mis pesos para este ejercicio</button>`:''}
       <section class="card chart"><h3>Evolución de ${useKg?'tu mejor peso':isT?'tu mejor tiempo':'tus repeticiones'}</h3>${h.length>1?chart:'<p class="muted" style="margin:6px 0 0">Haz este ejercicio en otra sesión para ver la gráfica.</p>'}</section>
       <section class="stack" style="gap:8px"><h3>Historial</h3><div class="list">${h.slice().reverse().slice(0,12).map(x=>`<div class="item"><div class="grow"><div class="name">${fmtDate(x.date)}</div><div class="muted num" style="font-size:13px">${x.sets.map(s=>setTxt(s,isT)).join(' · ')}</div></div></div>`).join('')}</div></section>`;
   }
@@ -1489,7 +1512,7 @@ function todayCard(){
 
 /* ---------- Herramientas ---------- */
 const TOOLS=[
- ['rm','Tu peso máximo (1RM)','Calcula cuánto podrías levantar en una sola repetición y qué peso usar en cada serie.','Escribe el peso y las repeticiones de una serie que hayas hecho de verdad, hasta el fallo o casi. Ejemplo: 80 kg × 5 → tu máximo estimado es unos 93 kg. Abajo verás qué peso usar según cuántas repeticiones quieras hacer: para series de 8, usa el 80 %.',I.stats],
+ ['rm','Tu peso máximo (1RM)','Calcula cuánto podrías levantar en una sola repetición y qué peso usar en cada serie.','Elige el ejercicio y la app rellena tu mejor serie reciente; también puedes escribir una serie a mano (hecha de verdad, hasta el fallo o casi). Ejemplo: 80 kg × 5 → tu máximo estimado es unos 93 kg. La tabla te dice qué peso usar según cuántas repeticiones quieras hacer: para series de 8, el 80 %. El resultado solo vale para ese ejercicio.',I.stats],
  ['plates','Discos para la barra','Dime cuánto quieres levantar y te digo qué discos poner a cada lado.','Escribe el peso total que quieres levantar y el peso de la barra (la olímpica pesa 20 kg). La app calcula los discos que van en cada lado, de mayor a menor. Ejemplo: 100 kg con barra de 20 → 25 + 15 kg en cada lado.',I.train],
  ['interval','Temporizador de intervalos','Cronómetro de trabajo y descanso que pita en cada cambio.','Elige cuántos segundos trabajas, cuántos descansas y cuántas rondas haces, y pulsa Iniciar. El móvil pita al cambiar de fase. Ejemplo Tabata: 20 s de trabajo, 10 s de descanso, 8 rondas.',I.tools],
  ['bmi','Índice de masa corporal (IMC)','Relación entre tu peso y tu altura, con el rango de peso saludable.','Escribe tu altura en centímetros y tu peso en kilos. Te dice tu IMC y qué peso se considera normal para tu altura. Ojo: si tienes mucho músculo puede salir alto sin que sobre grasa.',I.scale],
@@ -1505,6 +1528,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
   switch(a){
     case 'prog-ex':progressSheet(v);break;
+    case 'rm-from':closeLayer();rmFill(v);toolTab='rm';view='tools';render();window.scrollTo(0,0);break;
     case 'cal-move':{const n=new Date(),base=calM||new Date(n.getFullYear(),n.getMonth(),1);calM=new Date(base.getFullYear(),base.getMonth()+ +v,1);render();break}
     case 'cal-day':daySheet(v);break;
     case 'repeat-rec':{const r=S.history.find(x=>x.id===v);if(r){closeLayer();startSession(r.name,recItems(r))}break}
