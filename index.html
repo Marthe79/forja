@@ -929,7 +929,7 @@ setInterval(tick,250);
 /* ---------- Hoja para añadir ejercicios ---------- */
 function addSheet(mf0){
   const eqSet=new Set(S.wiz.equip);let q='',mf=mf0||'';
-  const draw=()=>{const list=EX.filter(e=>canDo(e,eqSet)&&!S.wiz.list.includes(e.id)&&(!mf||e.mus.includes(mf))&&(!q||e.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').includes(q)));
+  const draw=()=>{const list=EX.filter(e=>canDo(e,eqSet)&&!S.wiz.list.includes(e.id)&&(q||!mf||e.mus.includes(mf))&&(!q||e.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').includes(q)));
     $('#sheetList').innerHTML=list.length?`<div class="list">${list.map(e=>`<button class="item" style="border-left:0;border-right:0;border-bottom:0;background:none;text-align:left;width:100%" data-add="${e.id}">${demo(e.id,'thumb')}<div class="grow"><div class="name">${e.name}</div><div class="sub">${e.mus.slice(0,2).map((m,i)=>`<span class="tag ${i?'':'pri'}">${MNAME[m]}</span>`).join('')}<span class="tag">${eqLabel(e)}</span></div></div><span class="mini">${I.plus}</span></button>`).join('')}</div>`:`<p class="muted">No hay ejercicios que coincidan con tu equipo y la búsqueda.</p>`};
   $('#layer').innerHTML=`<div class="overlay" data-a="close-layer"><div class="sheet" role="dialog" aria-modal="true" aria-label="Añadir ejercicio">
     <div class="row between"><h2>Añadir ejercicio</h2><button class="mini" data-a="close-layer" aria-label="Cerrar">${I.x}</button></div>
@@ -1486,13 +1486,14 @@ function vDayEdit(){
   <div class="actions"><button class="btn danger" data-a="pd-clear">Dejar de descanso</button><button class="btn primary" style="flex:2" data-a="pd-save">Guardar ${DAYS[PD.day].toLowerCase()}</button></div></div>`;
 }
 function pdAddSheet(){
-  let q='',mf=PD.muscles[0]||'',eqf='';
-  const draw=()=>{const list=EX.filter(e=>!PD.items.some(it=>it.exId===e.id)&&(!mf||e.mus.includes(mf))&&(!eqf||e.eq.some(r=>r.split('|').includes(eqf)))&&(!q||e.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').includes(q)));
-    $('#pdList').innerHTML=list.length?`<div class="list">${list.slice(0,80).map(e=>`<button class="item" style="border-left:0;border-right:0;border-bottom:0;background:none;text-align:left;width:100%" data-pdadd="${e.id}">${demo(e.id,'thumb')}<div class="grow"><div class="name">${e.name}</div><div class="sub">${e.mus.slice(0,2).map((m,i)=>`<span class="tag ${i?'':'pri'}">${MNAME[m]}</span>`).join('')}<span class="tag">${eqLabel(e)}</span></div></div><span class="mini">${I.plus}</span></button>`).join('')}</div>`:`<p class="muted">No hay ejercicios con estos filtros.</p>`};
+  let q='',mf=PD.muscles.length?'__day':'',eqf='';
+  const musOk=e=>q||!mf||(mf==='__day'?e.mus.some(m=>PD.muscles.includes(m)):e.mus.includes(mf));
+  const draw=()=>{const list=EX.filter(e=>!PD.items.some(it=>it.exId===e.id)&&musOk(e)&&(!eqf||e.eq.some(r=>r.split('|').includes(eqf)))&&(!q||e.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').includes(q)));
+    $('#pdList').innerHTML=(q&&mf?`<p class="muted" style="margin:0 0 8px;font-size:13px">Buscando en todos los músculos.</p>`:'')+(list.length?`<div class="list">${list.map(e=>`<button class="item" style="border-left:0;border-right:0;border-bottom:0;background:none;text-align:left;width:100%" data-pdadd="${e.id}">${demo(e.id,'thumb')}<div class="grow"><div class="name">${e.name}</div><div class="sub">${e.mus.slice(0,2).map((m,i)=>`<span class="tag ${i?'':'pri'}">${MNAME[m]}</span>`).join('')}<span class="tag">${eqLabel(e)}</span></div></div><span class="mini">${I.plus}</span></button>`).join('')}</div>`:`<p class="muted">No hay ejercicios con estos filtros.</p>`)};
   $('#layer').innerHTML=`<div class="overlay" data-a="close-layer"><div class="sheet" role="dialog" aria-modal="true" aria-label="Añadir ejercicio">
     <div class="row between"><h2>Añadir a ${DAYS[PD.day].toLowerCase()}</h2><button class="mini" data-a="close-layer" aria-label="Cerrar">${I.x}</button></div>
     <input class="search" id="pdQ" placeholder="Buscar ejercicio" style="margin-top:12px" autocomplete="off">
-    <div class="chips" style="margin-top:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px" id="pdM">${[['','Todos'],...MUSCLES.map(m=>[m.id,m.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:6px 12px;font-size:14px" data-m="${id}" aria-pressed="${id===mf}">${n}</button>`).join('')}</div>
+    <div class="chips" style="margin-top:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px" id="pdM">${[...(PD.muscles.length?[['__day','Músculos del día']]:[]),['','Todos'],...MUSCLES.map(m=>[m.id,m.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:6px 12px;font-size:14px" data-m="${id}" aria-pressed="${id===mf}">${n}</button>`).join('')}</div>
     <div class="chips" style="margin-top:6px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px" id="pdE">${[['','Todo el equipo'],...EQUIP.map(q=>[q.id,q.name])].map(([id,n])=>`<button class="chip" style="flex:none;padding:5px 11px;font-size:13px" data-e="${id}" aria-pressed="${id===eqf}">${n}</button>`).join('')}</div>
     <div class="scroll" id="pdList"></div></div></div>`;
   draw();
